@@ -932,21 +932,32 @@ st.markdown('''
 
 # ============== SIDEBAR ============== 
 with st.sidebar:
+    # API Key Section - ALWAYS VISIBLE, NO CONDITIONAL RENDERING
     st.markdown("### 🧠 DeepSeek AI Configuration")
-    
-    # API Key Section - Always visible, no conditional containers
     st.markdown("#### 🔑 API Authentication")
     
-    # Always show the input field with a unique key
+    # Always show the input field - this is critical and must stay at the top
     api_key = st.text_input(
         "DeepSeek API Key",
         type="password",
         placeholder="sk-...",
         help="Enter your DeepSeek API key to enable enhanced AI analysis. Get your key at platform.deepseek.com",
-        key="api_key_input_sidebar"
+        key="api_key_input_always_visible"
     )
     
-    # Handle API key validation and display messages
+    # Always show the info box - never hide this
+    st.markdown("""
+    <div style="background: #f0f2f6; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; margin-bottom: 0.5rem; border-left: 4px solid #667eea;">
+        <p style="color: #1e293b; margin: 0; font-size: 0.85rem;">
+            🔐 <strong>Get your free API key:</strong><br>
+            <a href="https://platform.deepseek.com" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">
+                platform.deepseek.com →
+            </a>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Handle API key validation and display messages - this doesn't hide the input
     if api_key:
         if api_key.startswith('sk-') and len(api_key) >= 20:
             st.session_state.api_key = api_key
@@ -955,22 +966,12 @@ with st.sidebar:
             masked_key = api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
             st.caption(f"Connected: {masked_key}")
         else:
-            if len(api_key) > 0:  # Only show error if they've entered something
+            if len(api_key) > 0:
                 st.error("❌ Invalid API key format. Key should start with 'sk-' and be at least 20 characters.")
             st.session_state.api_key = None
     else:
         st.session_state.api_key = None
         st.info("💡 Enter your DeepSeek API key")
-        st.markdown("""
-        <div style="background: #f0f2f6; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; border-left: 4px solid #667eea;">
-            <p style="color: #1e293b; margin: 0; font-size: 0.85rem;">
-                🔐 <strong>Get your free API key:</strong><br>
-                <a href="https://platform.deepseek.com" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">
-                    platform.deepseek.com →
-                </a>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -981,7 +982,7 @@ with st.sidebar:
         ["🌱 Basic Entity Recognition", "🔬 Advanced Semantic Analysis", "🧬 Deep Knowledge Graph"],
         index=1,
         label_visibility="collapsed",
-        key="analysis_depth_radio"
+        key="analysis_depth_radio_final"
     )
     
     # Target AI Platforms
@@ -991,7 +992,7 @@ with st.sidebar:
         ["Google SGE", "ChatGPT", "Bard", "Claude", "Perplexity", "Copilot"],
         default=["Google SGE", "ChatGPT"],
         label_visibility="collapsed",
-        key="ai_platforms_multiselect"
+        key="ai_platforms_multiselect_final"
     )
     
     st.markdown("---")
@@ -1000,18 +1001,18 @@ with st.sidebar:
     with st.expander("📊 Global AI Trends", expanded=False):
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("SGE Adoption", "+127%", "+12%")
-            st.metric("Voice Search", "+89%", "+8%")
+            st.metric("SGE Adoption", "+127%", "+12%", key="metric_sge_final")
+            st.metric("Voice Search", "+89%", "+8%", key="metric_voice_final")
         with col2:
-            st.metric("Entity Search", "+156%", "+15%")
-            st.metric("AI Answers", "+234%", "+23%")
+            st.metric("Entity Search", "+156%", "+15%", key="metric_entity_final")
+            st.metric("AI Answers", "+234%", "+23%", key="metric_ai_answers_final")
     
     st.markdown("---")
     
     # Recent Analyses
     if st.session_state.analysis_history:
         st.markdown("### 🕒 Recent AI Analyses")
-        for hist in st.session_state.analysis_history[-3:]:
+        for idx, hist in enumerate(st.session_state.analysis_history[-3:]):
             st.markdown(f"""
             **{hist['url']}**  
             AI Score: {hist['score']}% | Entities: {hist['entities']}
@@ -1035,18 +1036,18 @@ with tab1:
             "Enter website URL for AI analysis",
             placeholder="https://yourwebsite.com",
             label_visibility="collapsed",
-            key="url_input_tab1"
+            key="url_input_tab1_final"
         )
     
     with col2:
-        analyze_btn = st.button("🚀 Analyze for AI Search", use_container_width=True, type="primary", key="analyze_button")
+        analyze_btn = st.button("🚀 Analyze for AI Search", use_container_width=True, type="primary", key="analyze_button_final")
     
     if analyze_btn and url:
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         
         with st.spinner("🧠 Analyzing AI search readiness..."):
-            progress_bar = st.progress(0, key="progress_bar")
+            progress_bar = st.progress(0, key="progress_bar_final")
             status_text = st.empty()
             
             # Simulate analysis steps with status updates
@@ -1451,7 +1452,7 @@ with tab5:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            if st.button("📊 Full AI Report", use_container_width=True, key="export_json"):
+            if st.button("📊 Full AI Report", use_container_width=True, key="export_json_final"):
                 # Generate JSON export
                 report_data = {
                     'domain': results['domain'],
@@ -1472,21 +1473,21 @@ with tab5:
                     data=export_to_json(report_data),
                     file_name=f"ai_report_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.json",
                     mime="application/json",
-                    key="download_json"
+                    key="download_json_final"
                 )
         
         with col2:
-            if st.button("🧬 Entity Map", use_container_width=True, key="export_csv"):
+            if st.button("🧬 Entity Map", use_container_width=True, key="export_csv_final"):
                 st.download_button(
                     label="💾 Download CSV",
                     data=export_to_csv(results),
                     file_name=f"entities_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.csv",
                     mime="text/csv",
-                    key="download_csv"
+                    key="download_csv_final"
                 )
         
         with col3:
-            if st.button("🔮 SGE Strategy", use_container_width=True, key="export_strategy"):
+            if st.button("🔮 SGE Strategy", use_container_width=True, key="export_strategy_final"):
                 strategy_text = f"""
 # Generative SEO Strategy for {results['domain']}
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
@@ -1506,18 +1507,18 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
                     data=strategy_text,
                     file_name=f"sge_strategy_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.md",
                     mime="text/markdown",
-                    key="download_strategy"
+                    key="download_strategy_final"
                 )
         
         with col4:
-            if st.button("📈 Competitor Analysis", use_container_width=True, key="export_competitors"):
+            if st.button("📈 Competitor Analysis", use_container_width=True, key="export_competitors_final"):
                 comp_df = pd.DataFrame(competitors)
                 st.download_button(
                     label="💾 Download CSV",
                     data=comp_df.to_csv(index=False),
                     file_name=f"competitors_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.csv",
                     mime="text/csv",
-                    key="download_competitors"
+                    key="download_competitors_final"
                 )
     else:
         st.info("👆 Analyze a website to view AI visibility reports")
