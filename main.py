@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 import json
 import re
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 from collections import Counter
 import random
 
@@ -18,7 +18,202 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS with embedded styles
+# ============== CORE ANALYSIS FUNCTIONS - DEFINED FIRST ==============
+
+def generate_entities(count, depth):
+    """
+    Generate realistic entity data
+    """
+    entity_types = ['ORGANIZATION', 'PERSON', 'PRODUCT', 'SERVICE', 'TECHNOLOGY', 
+                   'INDUSTRY', 'LOCATION', 'METRIC', 'PROCESS', 'TOOL']
+    
+    entity_names = [
+        'SEO', 'Digital Marketing', 'Google', 'Analytics', 'Content Strategy',
+        'Keyword Research', 'Link Building', 'Page Speed', 'Mobile Optimization',
+        'Local SEO', 'E-commerce', 'WordPress', 'Schema Markup', 'Voice Search',
+        'AI Content', 'BERT Algorithm', 'Featured Snippets', 'Knowledge Graph',
+        'Core Web Vitals', 'User Experience', 'Conversion Rate', 'ROI'
+    ]
+    
+    entities = []
+    for i in range(min(count, len(entity_names))):
+        confidence = random.uniform(0.55, 0.95)
+        entities.append({
+            'text': entity_names[i],
+            'type': random.choice(entity_types),
+            'confidence': round(confidence, 2),
+            'in_schema': random.choice([True, False]) if confidence > 0.7 else random.choice([False]),
+            'relevance': round(random.uniform(0.6, 1.0), 2)
+        })
+    
+    return entities
+
+def generate_entity_recommendations():
+    """
+    Generate entity optimization recommendations
+    """
+    return [
+        {
+            'title': 'Implement Organization Schema',
+            'description': 'Add structured data for your organization to improve entity recognition in Google Knowledge Graph and AI platforms.',
+            'priority': 'high',
+            'impact': '+35% entity visibility',
+            'effort': 'Low'
+        },
+        {
+            'title': 'Enhance Product Entities',
+            'description': 'Add Product schema markup with price, availability, and reviews for e-commerce visibility.',
+            'priority': 'high',
+            'impact': '+40% product visibility',
+            'effort': 'Medium'
+        },
+        {
+            'title': 'Add Person Entities',
+            'description': 'Mark up key team members and leadership with Person schema to build authority and trust signals.',
+            'priority': 'medium',
+            'impact': '+25% trust signals',
+            'effort': 'Low'
+        },
+        {
+            'title': 'Implement FAQ Schema',
+            'description': 'Add FAQ structured data for common questions to appear in featured snippets and voice search.',
+            'priority': 'medium',
+            'impact': '+30% snippet potential',
+            'effort': 'Low'
+        },
+        {
+            'title': 'Create How-To Schema',
+            'description': 'Add step-by-step instructions with HowTo schema for instructional content.',
+            'priority': 'low',
+            'impact': '+20% engagement',
+            'effort': 'Medium'
+        }
+    ]
+
+def generate_featured_snippets():
+    """
+    Generate featured snippet opportunities
+    """
+    return [
+        {
+            'question': 'What is SEO and why is it important?',
+            'answer': 'SEO (Search Engine Optimization) is the practice of optimizing websites to rank higher in search results, increasing organic traffic and visibility.',
+            'status': '✅ Currently ranking #3',
+            'color': '#eab308'
+        },
+        {
+            'question': 'How does AI impact search engine optimization?',
+            'answer': 'AI revolutionizes SEO through personalized search results, voice search optimization, predictive analytics, and automated content optimization.',
+            'status': '⚠️ Opportunity - Not ranking',
+            'color': '#ef4444'
+        },
+        {
+            'question': 'What are Core Web Vitals?',
+            'answer': 'Core Web Vitals are Google metrics measuring loading performance, interactivity, and visual stability - key factors in search rankings.',
+            'status': '✅ Currently featured',
+            'color': '#22c55e'
+        }
+    ]
+
+def generate_generative_recommendations():
+    """
+    Generate generative SEO recommendations
+    """
+    return [
+        {
+            'category': 'SGE Optimization',
+            'title': 'Structure Content for Generative Search',
+            'description': 'Organize content with clear headings, bullet points, and concise answers to directly address user queries.',
+            'impact': 'Very High',
+            'effort': 'Medium',
+            'border_color': '#00d2ff'
+        },
+        {
+            'category': 'Voice Search',
+            'title': 'Optimize for Conversational Queries',
+            'description': 'Target long-tail, natural language questions users ask voice assistants and AI chatbots.',
+            'impact': 'High',
+            'effort': 'Low',
+            'border_color': '#00ff9d'
+        },
+        {
+            'category': 'Entity SEO',
+            'title': 'Strengthen Entity Relationships',
+            'description': 'Create clear semantic connections between entities through internal linking and context.',
+            'impact': 'High',
+            'effort': 'High',
+            'border_color': '#9d4edd'
+        }
+    ]
+
+def generate_ai_analysis(url, depth, platforms):
+    """
+    Generate comprehensive AI search analysis
+    """
+    domain = urlparse(url).netloc if url.startswith(('http://', 'https://')) else url
+    
+    # Base scores
+    base_score = random.randint(55, 85)
+    
+    # Adjust based on depth
+    if "Deep" in depth or "🧬" in depth:
+        entity_count = random.randint(40, 70)
+        entity_score = random.randint(65, 85)
+        schema_score = random.randint(55, 75)
+    elif "Advanced" in depth or "🔬" in depth:
+        entity_count = random.randint(25, 45)
+        entity_score = random.randint(50, 70)
+        schema_score = random.randint(45, 65)
+    else:
+        entity_count = random.randint(15, 30)
+        entity_score = random.randint(40, 60)
+        schema_score = random.randint(35, 55)
+    
+    # Generate platform scores
+    platform_scores = {}
+    if platforms:
+        for platform in platforms:
+            platform_scores[platform] = random.randint(
+                max(30, base_score - 20),
+                min(95, base_score + 10)
+            )
+    else:
+        platform_scores = {
+            "Google SGE": random.randint(45, 75),
+            "ChatGPT": random.randint(50, 80),
+            "Bard": random.randint(40, 70)
+        }
+    
+    # Generate entities
+    entities = generate_entities(entity_count, depth)
+    
+    # Calculate entity confidence
+    entity_confidence = sum(e['confidence'] for e in entities) / len(entities) if entities else 0.7
+    
+    return {
+        'url': url,
+        'domain': domain,
+        'ai_visibility_score': base_score,
+        'entity_score': entity_score,
+        'entity_count': entity_count,
+        'schema_score': schema_score,
+        'schema_types': random.randint(2, 8),
+        'sge_score': random.randint(45, 75),
+        'ai_confidence': int(entity_confidence * 100),
+        'improvement_potential': random.randint(25, 45),
+        'platform_scores': platform_scores,
+        'entities': entities,
+        'entity_recommendations': generate_entity_recommendations(),
+        'kg_present': ['Organization', 'Product', 'Service', 'Website'],
+        'kg_missing': ['Founder', 'Awards', 'Partnerships', 'Reviews', 'Social Media'],
+        'ai_description': f"{domain} appears to be a website focused on digital services. Content structure needs improvement for AI comprehension. Missing schema markup for key entities.",
+        'optimized_description': f"{domain} is a leading provider of comprehensive digital solutions, specializing in AI-driven optimization and innovative technology services with verified entity relationships.",
+        'featured_snippets': generate_featured_snippets(),
+        'generative_recommendations': generate_generative_recommendations()
+    }
+
+# ============== CUSTOM CSS ==============
+
 st.markdown("""
 <style>
     /* AI-First Design System */
@@ -60,20 +255,6 @@ st.markdown("""
         display: inline-block;
         color: white;
         font-size: 0.9rem;
-    }
-    
-    .kg-node {
-        background: rgba(0, 210, 255, 0.1);
-        border: 2px solid #00d2ff;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: auto;
-        color: white;
-        font-weight: bold;
     }
     
     .recommendation-high {
@@ -126,10 +307,56 @@ st.markdown("""
         border-top: 1px solid rgba(0,210,255,0.2);
         margin-top: 3rem;
     }
+    
+    .trend-line {
+        display: flex;
+        align-items: flex-end;
+        height: 200px;
+        gap: 40px;
+        margin-top: 30px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid #334155;
+    }
+    
+    .trend-point {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+    
+    .trend-bar-container {
+        display: flex;
+        gap: 5px;
+        height: 150px;
+        align-items: flex-end;
+    }
+    
+    .trend-bar {
+        width: 30px;
+        border-radius: 5px 5px 0 0;
+    }
+    
+    .kg-node {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .kg-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 10px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 30px currentColor;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state
+# ============== INITIALIZE SESSION STATE ==============
+
 if 'analysis_results' not in st.session_state:
     st.session_state.analysis_results = None
 if 'api_key' not in st.session_state:
@@ -137,12 +364,14 @@ if 'api_key' not in st.session_state:
 if 'analysis_history' not in st.session_state:
     st.session_state.analysis_history = []
 
-# Header
+# ============== HEADER ==============
+
 st.markdown('<p class="main-header">🤖 AI Search Optimizer Pro</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Generative Search • Entity Recognition • Knowledge Graphs • SGE Readiness</p>', 
             unsafe_allow_html=True)
 
-# Sidebar
+# ============== SIDEBAR ==============
+
 with st.sidebar:
     st.markdown("### 🧠 DeepSeek AI Configuration")
     
@@ -206,7 +435,8 @@ with st.sidebar:
             AI Score: {hist['score']}% | Entities: {hist['entities']}
             """)
 
-# Main content
+# ============== MAIN TABS ==============
+
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🎯 AI Readiness Scan", 
     "🧬 Entity Intelligence", 
@@ -215,7 +445,8 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 AI Visibility Report"
 ])
 
-# Tab 1: AI Readiness Scan
+# ============== TAB 1: AI READINESS SCAN ==============
+
 with tab1:
     col1, col2 = st.columns([3, 1])
     
@@ -322,7 +553,8 @@ with tab1:
                 </div>
                 """, unsafe_allow_html=True)
 
-# Tab 2: Entity Intelligence
+# ============== TAB 2: ENTITY INTELLIGENCE ==============
+
 with tab2:
     if st.session_state.analysis_results:
         results = st.session_state.analysis_results
@@ -351,8 +583,6 @@ with tab2:
                     <span style="margin-left: 5px;">{schema_badge}</span>
                 </span>
                 """, unsafe_allow_html=True)
-            
-            st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
             st.markdown("#### 📊 Entity Distribution")
@@ -399,56 +629,13 @@ with tab2:
     else:
         st.info("👆 Analyze a website first to view entity intelligence")
 
-# Tab 3: Knowledge Graph
+# ============== TAB 3: KNOWLEDGE GRAPH ==============
+
 with tab3:
     if st.session_state.analysis_results:
         results = st.session_state.analysis_results
         
         st.markdown("### 🕸️ Entity Knowledge Graph")
-        
-        # Knowledge Graph visualization with HTML/CSS
-        st.markdown("""
-        <style>
-            .graph-container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 2rem;
-                background: rgba(10, 20, 30, 0.5);
-                border-radius: 20px;
-                margin-bottom: 2rem;
-            }
-            
-            .graph-grid {
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-                gap: 20px;
-                align-items: center;
-                justify-items: center;
-            }
-            
-            .graph-node {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                font-size: 0.8rem;
-                font-weight: bold;
-                color: white;
-                position: relative;
-            }
-            
-            .edge-line {
-                position: absolute;
-                width: 100%;
-                height: 2px;
-                background: linear-gradient(90deg, #00d2ff, transparent);
-            }
-        </style>
-        """, unsafe_allow_html=True)
         
         # Sample knowledge graph visualization
         nodes = results['entities'][:6]
@@ -458,22 +645,16 @@ with tab3:
         for idx, entity in enumerate(nodes[:3]):
             with cols[idx]:
                 st.markdown(f"""
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <div style="width: 100px; height: 100px; border-radius: 50%; 
-                         background: radial-gradient(circle at 30% 30%, {node_colors[idx]}, transparent);
-                         border: 2px solid {node_colors[idx]};
-                         margin: 0 auto 10px auto;
-                         display: flex;
-                         align-items: center;
-                         justify-content: center;
-                         box-shadow: 0 0 30px {node_colors[idx]}40;">
-                        <span style="color: white; font-weight: bold; text-align: center; font-size: 0.8rem;">
+                <div class="kg-node">
+                    <div class="kg-circle" style="background: radial-gradient(circle at 30% 30%, {node_colors[idx]}, transparent);
+                         border: 2px solid {node_colors[idx]};">
+                        <span style="color: white; font-weight: bold; text-align: center; font-size: 0.8rem; padding: 10px;">
                             {entity['text']}
                         </span>
                     </div>
                     <span style="color: {node_colors[idx]};">{entity['type']}</span>
                     <div style="font-size: 0.8rem; color: #b8c1ec; margin-top: 5px;">
-                        Confidence: {entity['confidence']:.0%}
+                        Confidence: {int(entity['confidence'] * 100)}%
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -491,22 +672,16 @@ with tab3:
         for idx, entity in enumerate(nodes[3:6]):
             with cols2[idx]:
                 st.markdown(f"""
-                <div style="text-align: center; margin-top: 30px;">
-                    <div style="width: 100px; height: 100px; border-radius: 50%; 
-                         background: radial-gradient(circle at 30% 30%, {node_colors[idx+3]}, transparent);
-                         border: 2px solid {node_colors[idx+3]};
-                         margin: 0 auto 10px auto;
-                         display: flex;
-                         align-items: center;
-                         justify-content: center;
-                         box-shadow: 0 0 30px {node_colors[idx+3]}40;">
-                        <span style="color: white; font-weight: bold; text-align: center; font-size: 0.8rem;">
+                <div class="kg-node">
+                    <div class="kg-circle" style="background: radial-gradient(circle at 30% 30%, {node_colors[idx+3]}, transparent);
+                         border: 2px solid {node_colors[idx+3]};">
+                        <span style="color: white; font-weight: bold; text-align: center; font-size: 0.8rem; padding: 10px;">
                             {entity['text']}
                         </span>
                     </div>
                     <span style="color: {node_colors[idx+3]};">{entity['type']}</span>
                     <div style="font-size: 0.8rem; color: #b8c1ec; margin-top: 5px;">
-                        Confidence: {entity['confidence']:.0%}
+                        Confidence: {int(entity['confidence'] * 100)}%
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -537,7 +712,8 @@ with tab3:
     else:
         st.info("👆 Analyze a website to generate knowledge graph")
 
-# Tab 4: Generative SEO
+# ============== TAB 4: GENERATIVE SEO ==============
+
 with tab4:
     st.markdown("### 🔮 Generative Search Optimization")
     
@@ -619,7 +795,8 @@ with tab4:
     else:
         st.info("👆 Analyze a website to view generative SEO insights")
 
-# Tab 5: AI Visibility Report
+# ============== TAB 5: AI VISIBILITY REPORT ==============
+
 with tab5:
     st.markdown("### 📊 AI Visibility & Competitive Analysis")
     
@@ -632,10 +809,10 @@ with tab5:
         # Create competitor data
         competitors = [
             {"name": "Your Website", "score": results['ai_visibility_score'], "entities": results['entity_count'], "color": "#00d2ff"},
-            {"name": "Competitor A", "score": results['ai_visibility_score'] + 12, "entities": results['entity_count'] + 15, "color": "#ff6b6b"},
-            {"name": "Competitor B", "score": results['ai_visibility_score'] - 5, "entities": results['entity_count'] - 8, "color": "#4ecdc4"},
-            {"name": "Competitor C", "score": results['ai_visibility_score'] + 8, "entities": results['entity_count'] + 10, "color": "#ffe66d"},
-            {"name": "Industry Avg", "score": results['ai_visibility_score'] - 10, "entities": results['entity_count'] - 12, "color": "#a5a5a5"}
+            {"name": "Competitor A", "score": min(99, results['ai_visibility_score'] + 12), "entities": results['entity_count'] + 15, "color": "#ff6b6b"},
+            {"name": "Competitor B", "score": max(30, results['ai_visibility_score'] - 5), "entities": results['entity_count'] - 8, "color": "#4ecdc4"},
+            {"name": "Competitor C", "score": min(99, results['ai_visibility_score'] + 8), "entities": results['entity_count'] + 10, "color": "#ffe66d"},
+            {"name": "Industry Avg", "score": max(30, results['ai_visibility_score'] - 10), "entities": results['entity_count'] - 12, "color": "#a5a5a5"}
         ]
         
         # Sort by score
@@ -670,39 +847,6 @@ with tab5:
         top_performer = [75, 78, 80, 82, 85, 88]
         
         # Create trend visualization
-        st.markdown("""
-        <style>
-            .trend-line {
-                display: flex;
-                align-items: flex-end;
-                height: 200px;
-                gap: 40px;
-                margin-top: 30px;
-                padding-bottom: 30px;
-                border-bottom: 1px solid #334155;
-            }
-            
-            .trend-point {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                flex: 1;
-            }
-            
-            .trend-bar-container {
-                display: flex;
-                gap: 5px;
-                height: 150px;
-                align-items: flex-end;
-            }
-            
-            .trend-bar {
-                width: 30px;
-                border-radius: 5px 5px 0 0;
-            }
-        </style>
-        """, unsafe_allow_html=True)
-        
         trend_html = '<div class="trend-line">'
         for i, month in enumerate(months):
             trend_html += f"""
@@ -748,7 +892,8 @@ with tab5:
     else:
         st.info("👆 Analyze a website to view AI visibility reports")
 
-# Footer
+# ============== FOOTER ==============
+
 st.markdown("""
 <div class="footer">
     <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">🤖 AI Search Optimizer Pro</div>
@@ -758,194 +903,6 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-# Core Analysis Functions
-def generate_ai_analysis(url, depth, platforms):
-    """
-    Generate comprehensive AI search analysis
-    """
-    domain = urlparse(url).netloc if url.startswith(('http://', 'https://')) else url
-    
-    # Base scores
-    base_score = random.randint(55, 85)
-    
-    # Adjust based on depth
-    if "Deep" in depth:
-        entity_count = random.randint(40, 70)
-        entity_score = random.randint(65, 85)
-        schema_score = random.randint(55, 75)
-    elif "Advanced" in depth:
-        entity_count = random.randint(25, 45)
-        entity_score = random.randint(50, 70)
-        schema_score = random.randint(45, 65)
-    else:
-        entity_count = random.randint(15, 30)
-        entity_score = random.randint(40, 60)
-        schema_score = random.randint(35, 55)
-    
-    # Generate platform scores
-    platform_scores = {}
-    for platform in platforms:
-        platform_scores[platform] = random.randint(
-            max(30, base_score - 20),
-            min(95, base_score + 10)
-        )
-    
-    # Generate entities
-    entities = generate_entities(entity_count, depth)
-    
-    # Calculate entity confidence
-    entity_confidence = sum(e['confidence'] for e in entities) / len(entities) if entities else 0
-    
-    return {
-        'url': url,
-        'domain': domain,
-        'ai_visibility_score': base_score,
-        'entity_score': entity_score,
-        'entity_count': entity_count,
-        'schema_score': schema_score,
-        'schema_types': random.randint(2, 8),
-        'sge_score': random.randint(45, 75),
-        'ai_confidence': int(entity_confidence * 100),
-        'improvement_potential': random.randint(25, 45),
-        'platform_scores': platform_scores,
-        'entities': entities,
-        'entity_recommendations': generate_entity_recommendations(),
-        'kg_present': ['Organization', 'Product', 'Service'],
-        'kg_missing': ['Founder', 'Awards', 'Partnerships', 'Reviews'],
-        'ai_description': f"{domain} appears to be a website focused on digital services. Content structure needs improvement for AI comprehension.",
-        'optimized_description': f"{domain} is a leading provider of comprehensive digital solutions, specializing in AI-driven optimization and innovative technology services.",
-        'featured_snippets': generate_featured_snippets(),
-        'generative_recommendations': generate_generative_recommendations()
-    }
-
-def generate_entities(count, depth):
-    """
-    Generate realistic entity data
-    """
-    entity_types = ['ORGANIZATION', 'PERSON', 'PRODUCT', 'SERVICE', 'TECHNOLOGY', 
-                   'INDUSTRY', 'LOCATION', 'METRIC', 'PROCESS', 'TOOL']
-    
-    entity_names = [
-        'SEO', 'Digital Marketing', 'Google', 'Analytics', 'Content Strategy',
-        'Keyword Research', 'Link Building', 'Page Speed', 'Mobile Optimization',
-        'Local SEO', 'E-commerce', 'WordPress', 'Schema Markup', 'Voice Search',
-        'AI Content', 'BERT Algorithm', 'Featured Snippets', 'Knowledge Graph',
-        'Core Web Vitals', 'User Experience', 'Conversion Rate', 'ROI'
-    ]
-    
-    entities = []
-    for i in range(min(count, len(entity_names))):
-        confidence = random.uniform(0.55, 0.95)
-        entities.append({
-            'text': entity_names[i],
-            'type': random.choice(entity_types),
-            'confidence': confidence,
-            'in_schema': random.choice([True, False]) if confidence > 0.7 else random.choice([False]),
-            'relevance': random.uniform(0.6, 1.0)
-        })
-    
-    return entities
-
-def generate_entity_recommendations():
-    """
-    Generate entity optimization recommendations
-    """
-    return [
-        {
-            'title': 'Implement Organization Schema',
-            'description': 'Add structured data for your organization to improve entity recognition in Google Knowledge Graph and AI platforms.',
-            'priority': 'high',
-            'impact': '+35% entity visibility',
-            'effort': 'Low'
-        },
-        {
-            'title': 'Enhance Product Entities',
-            'description': 'Add Product schema markup with price, availability, and reviews for e-commerce visibility.',
-            'priority': 'high',
-            'impact': '+40% product visibility',
-            'effort': 'Medium'
-        },
-        {
-            'title': 'Add Person Entities',
-            'description': 'Mark up key team members and leadership with Person schema to build authority and trust signals.',
-            'priority': 'medium',
-            'impact': '+25% trust signals',
-            'effort': 'Low'
-        },
-        {
-            'title': 'Implement FAQ Schema',
-            'description': 'Add FAQ structured data for common questions to appear in featured snippets and voice search.',
-            'priority': 'medium',
-            'impact': '+30% snippet potential',
-            'effort': 'Low'
-        },
-        {
-            'title': 'Create How-To Schema',
-            'description': 'Add step-by-step instructions with HowTo schema for instructional content.',
-            'priority': 'low',
-            'impact': '+20% engagement',
-            'effort': 'Medium'
-        }
-    ]
-
-def generate_featured_snippets():
-    """
-    Generate featured snippet opportunities
-    """
-    return [
-        {
-            'question': 'What is SEO and why is it important?',
-            'answer': 'SEO (Search Engine Optimization) is the practice of optimizing websites to rank higher in search results, increasing organic traffic and visibility.',
-            'status': '✅ Currently ranking #3',
-            'color': '#eab308'
-        },
-        {
-            'question': 'How does AI impact search engine optimization?',
-            'answer': 'AI revolutionizes SEO through personalized search results, voice search optimization, predictive analytics, and automated content optimization.',
-            'status': '⚠️ Opportunity - Not ranking',
-            'color': '#ef4444'
-        },
-        {
-            'question': 'What are Core Web Vitals?',
-            'answer': 'Core Web Vitals are Google metrics measuring loading performance, interactivity, and visual stability - key factors in search rankings.',
-            'status': '✅ Currently featured',
-            'color': '#22c55e'
-        }
-    ]
-
-def generate_generative_recommendations():
-    """
-    Generate generative SEO recommendations
-    """
-    recommendations = [
-        {
-            'category': 'SGE Optimization',
-            'title': 'Structure Content for Generative Search',
-            'description': 'Organize content with clear headings, bullet points, and concise answers to directly address user queries.',
-            'impact': 'Very High',
-            'effort': 'Medium',
-            'border_color': '#00d2ff'
-        },
-        {
-            'category': 'Voice Search',
-            'title': 'Optimize for Conversational Queries',
-            'description': 'Target long-tail, natural language questions users ask voice assistants and AI chatbots.',
-            'impact': 'High',
-            'effort': 'Low',
-            'border_color': '#00ff9d'
-        },
-        {
-            'category': 'Entity SEO',
-            'title': 'Strengthen Entity Relationships',
-            'description': 'Create clear semantic connections between entities through internal linking and context.',
-            'impact': 'High',
-            'effort': 'High',
-            'border_color': '#9d4edd'
-        }
-    ]
-    
-    return recommendations
 
 if __name__ == "__main__":
     # App is ready to run
