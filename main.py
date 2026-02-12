@@ -488,6 +488,34 @@ st.markdown("""
         margin-top: 0.5rem;
     }
     
+    /* Sidebar styling */
+    .sidebar-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .sidebar-header h3 {
+        color: white;
+        margin: 0;
+        font-size: 1.2rem;
+    }
+    
+    /* API Key input styling */
+    .stSidebar .stTextInput input {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    
+    .stSidebar .stTextInput input:focus {
+        border-color: #764ba2;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+    
     /* Metric cards */
     .metric-card {
         background: white;
@@ -932,22 +960,28 @@ st.markdown('''
 
 # ============== SIDEBAR ============== 
 with st.sidebar:
-    # API Key Section - ALWAYS VISIBLE, NO CONDITIONAL RENDERING
-    st.markdown("### 🧠 DeepSeek AI Configuration")
+    # API Key Section - ABSOLUTE TOP, PROMINENT, ALWAYS VISIBLE
+    st.markdown("""
+    <div class="sidebar-header">
+        <h3>🧠 DeepSeek AI Configuration</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown("#### 🔑 API Authentication")
     
-    # Always show the input field - this is critical and must stay at the top
+    # API Key Input - Always visible, prominent styling
     api_key = st.text_input(
         "DeepSeek API Key",
         type="password",
-        placeholder="sk-...",
+        placeholder="sk-... (enter your API key)",
         help="Enter your DeepSeek API key to enable enhanced AI analysis. Get your key at platform.deepseek.com",
-        key="api_key_input_always_visible"
+        key="api_key_input_main",
+        label_visibility="collapsed"
     )
     
-    # Always show the info box - never hide this
+    # Info box - Always visible
     st.markdown("""
-    <div style="background: #f0f2f6; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; margin-bottom: 0.5rem; border-left: 4px solid #667eea;">
+    <div style="background: #f0f2f6; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; margin-bottom: 1rem; border-left: 4px solid #667eea;">
         <p style="color: #1e293b; margin: 0; font-size: 0.85rem;">
             🔐 <strong>Get your free API key:</strong><br>
             <a href="https://platform.deepseek.com" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">
@@ -957,12 +991,11 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
-    # Handle API key validation and display messages - this doesn't hide the input
+    # API Key Validation Status
     if api_key:
         if api_key.startswith('sk-') and len(api_key) >= 20:
             st.session_state.api_key = api_key
             st.success("✅ DeepSeek AI Connected")
-            # Show masked key
             masked_key = api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
             st.caption(f"Connected: {masked_key}")
         else:
@@ -971,7 +1004,7 @@ with st.sidebar:
             st.session_state.api_key = None
     else:
         st.session_state.api_key = None
-        st.info("💡 Enter your DeepSeek API key")
+        st.info("💡 Enter your DeepSeek API key to unlock premium features")
     
     st.markdown("---")
     
@@ -997,7 +1030,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Live AI Metrics - NO key parameters for st.metric
+    # Live AI Metrics
     with st.expander("📊 Global AI Trends", expanded=False):
         col1, col2 = st.columns(2)
         with col1:
