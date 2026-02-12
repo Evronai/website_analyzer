@@ -456,6 +456,17 @@ def export_to_csv(data):
     df = pd.DataFrame(data['entities'])
     return df.to_csv(index=False)
 
+def validate_api_key(api_key):
+    """Validate DeepSeek API key format"""
+    if not api_key:
+        return False, "No API key provided"
+    if api_key.startswith('sk-') and len(api_key) >= 20:
+        return True, "Valid API key format"
+    elif len(api_key) >= 20:
+        return True, "Valid API key format"
+    else:
+        return False, "Invalid API key format"
+
 # ============== ENHANCED CUSTOM CSS ============== 
 st.markdown("""
 <style>
@@ -864,6 +875,29 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     
+    /* API Key Section Styling */
+    .api-key-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .api-help-box {
+        background: rgba(255,255,255,0.1);
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .api-link {
+        color: white !important;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+    
     /* Footer */
     .footer {
         background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -934,19 +968,43 @@ st.markdown('''
 with st.sidebar:
     st.markdown("### 🧠 DeepSeek AI Configuration")
     
-    with st.expander("⚡ API Settings", expanded=True):
-        api_key = st.text_input(
-            "API Key",
-            type="password",
-            placeholder="sk-...",
-            help="Connect to DeepSeek for enhanced AI analysis",
-            label_visibility="collapsed"
-        )
-        
-        if api_key:
-            st.session_state.api_key = api_key
-            st.success("✅ DeepSeek AI Active")
+    # API Key Section - Made prominent and clearly visible
+    st.markdown('<div class="api-key-container">', unsafe_allow_html=True)
+    st.markdown("#### 🔑 API Authentication")
     
+    api_key = st.text_input(
+        "DeepSeek API Key",
+        type="password",
+        placeholder="sk-...",
+        help="Enter your DeepSeek API key to enable enhanced AI analysis",
+        label_visibility="collapsed"
+    )
+    
+    if api_key:
+        is_valid, validation_msg = validate_api_key(api_key)
+        if is_valid:
+            st.session_state.api_key = api_key
+            st.success("✅ DeepSeek AI Connected")
+            # Show masked key
+            masked_key = api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
+            st.caption(f"🔐 Connected: {masked_key}")
+        else:
+            st.error(f"❌ {validation_msg}")
+            st.session_state.api_key = None
+    else:
+        st.info("💡 Enter your API key to unlock premium features")
+        st.markdown("""
+        <div class="api-help-box">
+            <p style="margin: 0; color: white; font-size: 0.85rem;">
+                🔐 <strong>Get your free API key:</strong><br>
+                <a href="https://platform.deepseek.com" target="_blank" style="color: white; text-decoration: underline;">
+                    platform.deepseek.com →
+                </a>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     st.markdown("---")
     
     # AI Analysis Settings
@@ -969,15 +1027,15 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Live AI Metrics
-    st.markdown("### 📊 Global AI Trends")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("SGE Adoption", "+127%", "+12%")
-        st.metric("Voice Search", "+89%", "+8%")
-    with col2:
-        st.metric("Entity Search", "+156%", "+15%")
-        st.metric("AI Answers", "+234%", "+23%")
+    # Live AI Metrics (in expander to save space)
+    with st.expander("📊 Global AI Trends", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("SGE Adoption", "+127%", "+12%")
+            st.metric("Voice Search", "+89%", "+8%")
+        with col2:
+            st.metric("Entity Search", "+156%", "+15%")
+            st.metric("AI Answers", "+234%", "+23%")
     
     st.markdown("---")
     
