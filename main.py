@@ -488,32 +488,43 @@ st.markdown("""
         margin-top: 0.5rem;
     }
     
-    /* Sidebar styling */
-    .sidebar-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1rem;
+    /* API Key Section Styling */
+    .api-section {
+        background: white;
+        padding: 1.5rem;
         border-radius: 12px;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     
-    .sidebar-header h3 {
-        color: white;
-        margin: 0;
-        font-size: 1.2rem;
+    .stTextInput input {
+        border: 2px solid #667eea !important;
+        border-radius: 8px !important;
+        font-size: 1rem !important;
+        padding: 0.75rem !important;
     }
     
-    /* API Key input styling */
-    .stSidebar .stTextInput input {
-        background: white;
-        border: 2px solid #667eea;
+    .stTextInput input:focus {
+        border-color: #764ba2 !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+    }
+    
+    .api-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 0.75rem 1.5rem;
         border-radius: 8px;
-        font-size: 1rem;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        width: 100%;
+        transition: transform 0.2s;
     }
     
-    .stSidebar .stTextInput input:focus {
-        border-color: #764ba2;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    .api-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     
     /* Metric cards */
@@ -958,55 +969,53 @@ st.markdown('''
 </div>
 ''', unsafe_allow_html=True)
 
-# ============== SIDEBAR ============== 
-with st.sidebar:
-    # API Key Section - ABSOLUTE TOP, PROMINENT, ALWAYS VISIBLE
-    st.markdown("""
-    <div class="sidebar-header">
-        <h3>🧠 DeepSeek AI Configuration</h3>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("#### 🔑 API Authentication")
-    
-    # API Key Input - Always visible, prominent styling
+# ============== API KEY SECTION - MOVED TO MAIN AREA (ALWAYS VISIBLE) ==============
+st.markdown('<div class="api-section">', unsafe_allow_html=True)
+st.markdown("### 🔑 DeepSeek AI Authentication")
+
+col1, col2 = st.columns([3, 1])
+
+with col1:
     api_key = st.text_input(
         "DeepSeek API Key",
         type="password",
         placeholder="sk-... (enter your API key)",
         help="Enter your DeepSeek API key to enable enhanced AI analysis. Get your key at platform.deepseek.com",
-        key="api_key_input_main",
+        key="api_key_main_area",
         label_visibility="collapsed"
     )
-    
-    # Info box - Always visible
+
+with col2:
     st.markdown("""
-    <div style="background: #f0f2f6; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; margin-bottom: 1rem; border-left: 4px solid #667eea;">
-        <p style="color: #1e293b; margin: 0; font-size: 0.85rem;">
-            🔐 <strong>Get your free API key:</strong><br>
-            <a href="https://platform.deepseek.com" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">
-                platform.deepseek.com →
-            </a>
-        </p>
-    </div>
+    <a href="https://platform.deepseek.com" target="_blank" style="text-decoration: none;">
+        <div class="api-button">
+            Get API Key →
+        </div>
+    </a>
     """, unsafe_allow_html=True)
-    
-    # API Key Validation Status
-    if api_key:
-        if api_key.startswith('sk-') and len(api_key) >= 20:
-            st.session_state.api_key = api_key
-            st.success("✅ DeepSeek AI Connected")
-            masked_key = api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
-            st.caption(f"Connected: {masked_key}")
-        else:
-            if len(api_key) > 0:
-                st.error("❌ Invalid API key format. Key should start with 'sk-' and be at least 20 characters.")
-            st.session_state.api_key = None
+
+# API Key Validation Status
+if api_key:
+    if api_key.startswith('sk-') and len(api_key) >= 20:
+        st.session_state.api_key = api_key
+        st.success("✅ DeepSeek AI Connected")
+        # Show masked key
+        masked_key = api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
+        st.caption(f"Connected: {masked_key}")
     else:
+        if len(api_key) > 0:
+            st.error("❌ Invalid API key format. Key should start with 'sk-' and be at least 20 characters.")
         st.session_state.api_key = None
-        st.info("💡 Enter your DeepSeek API key to unlock premium features")
-    
-    st.markdown("---")
+else:
+    st.session_state.api_key = None
+    st.info("💡 Enter your DeepSeek API key to unlock premium features")
+
+st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("---")
+
+# ============== SIDEBAR ============== 
+with st.sidebar:
+    # API Key Section REMOVED from sidebar - now in main area
     
     # AI Analysis Settings
     st.markdown("### 🎯 AI Analysis Depth")
