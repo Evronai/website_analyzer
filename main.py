@@ -997,15 +997,15 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Live AI Metrics
+    # Live AI Metrics - NO key parameters for st.metric
     with st.expander("📊 Global AI Trends", expanded=False):
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("SGE Adoption", "+127%", "+12%", key="metric_sge_final")
-            st.metric("Voice Search", "+89%", "+8%", key="metric_voice_final")
+            st.metric("SGE Adoption", "+127%", "+12%")
+            st.metric("Voice Search", "+89%", "+8%")
         with col2:
-            st.metric("Entity Search", "+156%", "+15%", key="metric_entity_final")
-            st.metric("AI Answers", "+234%", "+23%", key="metric_ai_answers_final")
+            st.metric("Entity Search", "+156%", "+15%")
+            st.metric("AI Answers", "+234%", "+23%")
     
     st.markdown("---")
     
