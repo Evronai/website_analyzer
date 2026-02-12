@@ -934,17 +934,19 @@ st.markdown('''
 with st.sidebar:
     st.markdown("### 🧠 DeepSeek AI Configuration")
     
-    # API Key Section - Simplified and clearly visible
+    # API Key Section - Always visible, no conditional containers
     st.markdown("#### 🔑 API Authentication")
     
+    # Always show the input field with a unique key
     api_key = st.text_input(
         "DeepSeek API Key",
         type="password",
         placeholder="sk-...",
         help="Enter your DeepSeek API key to enable enhanced AI analysis. Get your key at platform.deepseek.com",
-        key="api_key_input"
+        key="api_key_input_sidebar"
     )
     
+    # Handle API key validation and display messages
     if api_key:
         if api_key.startswith('sk-') and len(api_key) >= 20:
             st.session_state.api_key = api_key
@@ -953,9 +955,11 @@ with st.sidebar:
             masked_key = api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
             st.caption(f"Connected: {masked_key}")
         else:
-            st.error("❌ Invalid API key format. Key should start with 'sk-' and be at least 20 characters.")
+            if len(api_key) > 0:  # Only show error if they've entered something
+                st.error("❌ Invalid API key format. Key should start with 'sk-' and be at least 20 characters.")
             st.session_state.api_key = None
     else:
+        st.session_state.api_key = None
         st.info("💡 Enter your DeepSeek API key")
         st.markdown("""
         <div style="background: #f0f2f6; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; border-left: 4px solid #667eea;">
@@ -976,7 +980,8 @@ with st.sidebar:
         "Select depth",
         ["🌱 Basic Entity Recognition", "🔬 Advanced Semantic Analysis", "🧬 Deep Knowledge Graph"],
         index=1,
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key="analysis_depth_radio"
     )
     
     # Target AI Platforms
@@ -985,7 +990,8 @@ with st.sidebar:
         "Select platforms",
         ["Google SGE", "ChatGPT", "Bard", "Claude", "Perplexity", "Copilot"],
         default=["Google SGE", "ChatGPT"],
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key="ai_platforms_multiselect"
     )
     
     st.markdown("---")
@@ -1028,18 +1034,19 @@ with tab1:
         url = st.text_input(
             "Enter website URL for AI analysis",
             placeholder="https://yourwebsite.com",
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            key="url_input_tab1"
         )
     
     with col2:
-        analyze_btn = st.button("🚀 Analyze for AI Search", use_container_width=True, type="primary")
+        analyze_btn = st.button("🚀 Analyze for AI Search", use_container_width=True, type="primary", key="analyze_button")
     
     if analyze_btn and url:
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         
         with st.spinner("🧠 Analyzing AI search readiness..."):
-            progress_bar = st.progress(0)
+            progress_bar = st.progress(0, key="progress_bar")
             status_text = st.empty()
             
             # Simulate analysis steps with status updates
@@ -1444,7 +1451,7 @@ with tab5:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            if st.button("📊 Full AI Report", use_container_width=True):
+            if st.button("📊 Full AI Report", use_container_width=True, key="export_json"):
                 # Generate JSON export
                 report_data = {
                     'domain': results['domain'],
@@ -1464,20 +1471,22 @@ with tab5:
                     label="💾 Download JSON",
                     data=export_to_json(report_data),
                     file_name=f"ai_report_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.json",
-                    mime="application/json"
+                    mime="application/json",
+                    key="download_json"
                 )
         
         with col2:
-            if st.button("🧬 Entity Map", use_container_width=True):
+            if st.button("🧬 Entity Map", use_container_width=True, key="export_csv"):
                 st.download_button(
                     label="💾 Download CSV",
                     data=export_to_csv(results),
                     file_name=f"entities_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.csv",
-                    mime="text/csv"
+                    mime="text/csv",
+                    key="download_csv"
                 )
         
         with col3:
-            if st.button("🔮 SGE Strategy", use_container_width=True):
+            if st.button("🔮 SGE Strategy", use_container_width=True, key="export_strategy"):
                 strategy_text = f"""
 # Generative SEO Strategy for {results['domain']}
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
@@ -1496,17 +1505,19 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
                     label="💾 Download Strategy",
                     data=strategy_text,
                     file_name=f"sge_strategy_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.md",
-                    mime="text/markdown"
+                    mime="text/markdown",
+                    key="download_strategy"
                 )
         
         with col4:
-            if st.button("📈 Competitor Analysis", use_container_width=True):
+            if st.button("📈 Competitor Analysis", use_container_width=True, key="export_competitors"):
                 comp_df = pd.DataFrame(competitors)
                 st.download_button(
                     label="💾 Download CSV",
                     data=comp_df.to_csv(index=False),
                     file_name=f"competitors_{results['domain']}_{datetime.now().strftime('%Y%m%d')}.csv",
-                    mime="text/csv"
+                    mime="text/csv",
+                    key="download_competitors"
                 )
     else:
         st.info("👆 Analyze a website to view AI visibility reports")
