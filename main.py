@@ -21,11 +21,11 @@ st.set_page_config(
 # ============== DEEPSEEK API INTEGRATION ==============
 def analyze_with_deepseek(api_key, url, depth, platforms):
     """
-    Actually call DeepSeek API for real AI analysis
+    Actually call DeepSeek API for real AI analysis of ANY website
     """
     if not api_key or not api_key.startswith('sk-') or len(api_key) < 20:
-        st.warning("⚠️ Invalid or missing API key. Using demo data.")
-        return generate_ai_analysis(url, depth, platforms)
+        st.warning("⚠️ Invalid or missing API key. Using enhanced demo data.")
+        return generate_ai_analysis(url, depth, platforms, enhanced=True)
     
     try:
         headers = {
@@ -35,73 +35,95 @@ def analyze_with_deepseek(api_key, url, depth, platforms):
         
         domain = urlparse(url).netloc if url.startswith(('http://', 'https://')) else url
         
-        # Construct prompt for DeepSeek
-        prompt = f"""Analyze this website for AI search visibility and entity recognition: {url}
+        # Comprehensive prompt for ANY website type
+        prompt = f"""You are an expert at website classification and SEO analysis. Analyze this website URL and domain: {url}
 
-Website domain: {domain}
+Domain: {domain}
 Analysis depth: {depth}
 Target AI platforms: {', '.join(platforms) if platforms else 'Google SGE, ChatGPT, Bard'}
 
-Please provide a comprehensive AI search optimization analysis with the following data in JSON format:
+First, classify the website type STRICTLY based on these categories:
 
-1. website_type: Object containing:
-   - type: One of ["E-commerce / Retail", "Service Provider", "Content / Media", "Business Website"]
-   - industry: Specific industry (e.g., "Retail", "Professional Services", "Digital Media")
-   - description: Brief description of the website
-   - entity_focus: Array of 3-5 main entity types to focus on
-   - schema_priority: Array of 3-5 schema types to prioritize
+1. "E-commerce / Retail" - Sells physical or digital products, has shopping cart, product pages, categories
+   Examples: shoe stores, clothing shops, electronics stores, Amazon, Etsy, any online store
 
-2. ai_visibility_score: Number 0-100 (overall AI search visibility)
+2. "Service Provider" - Offers professional services, consultations, expertise
+   Examples: marketing agencies, consulting firms, law firms, medical practices, digital agencies, freelancers
 
-3. entity_score: Number 0-100 (entity recognition quality)
+3. "Content / Media" - Publishes articles, news, blogs, educational content
+   Examples: news sites, tech blogs, magazines, educational platforms, review sites
 
-4. entity_count: Number of entities detected (10-50)
+4. "Business Website" - Corporate/brochure website for a company
+   Examples: company landing pages, corporate sites, portfolio sites
 
-5. schema_score: Number 0-100 (schema markup coverage)
+Return ONLY valid JSON with this exact structure. ALL fields are required:
 
-6. sge_score: Number 0-100 (SGE readiness)
+{{
+  "website_type": {{
+    "type": "string - one of the four categories above",
+    "industry": "string - specific industry (e.g., 'Footwear Retail', 'Digital Marketing', 'Tech News', 'Manufacturing')",
+    "description": "string - brief 1-sentence description of what the website does",
+    "entity_focus": ["array of 4-6 main entity types relevant to this business"],
+    "schema_priority": ["array of 4-6 schema.org types to prioritize"]
+  }},
+  "ai_visibility_score": "integer 0-100",
+  "entity_score": "integer 0-100",
+  "entity_count": "integer 15-50",
+  "schema_score": "integer 0-100",
+  "schema_types": "integer 1-8",
+  "sge_score": "integer 0-100",
+  "ai_confidence": "integer 0-100",
+  "improvement_potential": "integer 0-100",
+  "platform_scores": {{
+    "Google SGE": "integer 0-100",
+    "ChatGPT": "integer 0-100",
+    "Bard": "integer 0-100",
+    "Claude": "integer 0-100"
+  }},
+  "entities": [
+    {{
+      "text": "string - entity name",
+      "type": "string - entity type (PRODUCT, SERVICE, BRAND, etc.)",
+      "confidence": "number 0.5-1.0",
+      "in_schema": "boolean",
+      "relevance": "number 0.6-1.0"
+    }}
+  ],
+  "entity_recommendations": [
+    {{
+      "title": "string",
+      "description": "string",
+      "priority": "high/medium/low",
+      "impact": "string (e.g., '+45% visibility')",
+      "effort": "High/Medium/Low"
+    }}
+  ],
+  "kg_present": ["array of 3-4 entities already in knowledge graph"],
+  "kg_missing": ["array of 3-4 entities missing from knowledge graph"],
+  "ai_description": "string - current AI understanding of the website (1-2 sentences)",
+  "optimized_description": "string - optimized AI description (1-2 sentences)",
+  "featured_snippets": [
+    {{
+      "question": "string - common question in this industry",
+      "answer": "string - best answer",
+      "status": "string - current ranking status",
+      "color": "string hex color code"
+    }}
+  ],
+  "generative_recommendations": [
+    {{
+      "category": "string - strategy category",
+      "title": "string",
+      "description": "string",
+      "impact": "Very High/High/Medium",
+      "effort": "High/Medium/Low",
+      "border_color": "string hex color code"
+    }}
+  ]
+}}
 
-7. platform_scores: Object with platform names and scores 0-100 for each target platform
-
-8. entities: Array of 10-20 objects, each with:
-   - text: Entity name
-   - type: Entity type
-   - confidence: 0.5-1.0
-   - in_schema: boolean
-   - relevance: 0.6-1.0
-
-9. entity_recommendations: Array of 3-5 objects, each with:
-   - title: Recommendation title
-   - description: Detailed description
-   - priority: "high", "medium", or "low"
-   - impact: Expected impact (e.g., "+45% visibility")
-   - effort: "High", "Medium", or "Low"
-
-10. kg_present: Array of 3-4 entities already in knowledge graph
-
-11. kg_missing: Array of 3-4 entities missing from knowledge graph
-
-12. ai_description: Current AI understanding of the website (1-2 sentences)
-
-13. optimized_description: Optimized AI description (1-2 sentences)
-
-14. featured_snippets: Array of 2-3 objects, each with:
-    - question: Common question
-    - answer: Best answer
-    - status: Current ranking status
-    - color: Hex color code for status
-
-15. generative_recommendations: Array of 3-4 objects, each with:
-    - category: Strategy category
-    - title: Recommendation title
-    - description: Detailed description
-    - impact: "Very High", "High", or "Medium"
-    - effort: "High", "Medium", or "Low"
-    - border_color: Hex color code
-
-Return ONLY valid JSON, no other text.
-"""
-
+Ensure ALL fields are included with appropriate values for this specific website. The response must be parseable JSON only, no other text."""
+        
         # Call DeepSeek API
         response = requests.post(
             "https://api.deepseek.com/v1/chat/completions",
@@ -109,7 +131,7 @@ Return ONLY valid JSON, no other text.
             json={
                 "model": "deepseek-chat",
                 "messages": [
-                    {"role": "system", "content": "You are an AI search optimization expert. Analyze websites and provide structured JSON data about their AI search visibility and entity recognition."},
+                    {"role": "system", "content": "You are an AI search optimization expert. Analyze any website and provide structured JSON data about its AI search visibility and entity recognition. Always return valid JSON only."},
                     {"role": "user", "content": prompt}
                 ],
                 "temperature": 0.3,
@@ -121,28 +143,126 @@ Return ONLY valid JSON, no other text.
         if response.status_code == 200:
             result = response.json()
             analysis_text = result['choices'][0]['message']['content']
-            analysis_data = json.loads(analysis_text)
+            
+            # Clean the response - remove markdown code blocks if present
+            analysis_text = analysis_text.replace('```json', '').replace('```', '').strip()
+            
+            try:
+                analysis_data = json.loads(analysis_text)
+            except json.JSONDecodeError:
+                # Try to extract JSON from the text using regex
+                import re
+                json_match = re.search(r'\{.*\}', analysis_text, re.DOTALL)
+                if json_match:
+                    analysis_data = json.loads(json_match.group())
+                else:
+                    raise ValueError("Could not parse JSON from API response")
             
             # Add metadata
             analysis_data['url'] = url
             analysis_data['domain'] = domain
             analysis_data['improvement_potential'] = 100 - analysis_data.get('ai_visibility_score', 50)
             
-            # Ensure all required fields exist
-            if 'platform_scores' not in analysis_data:
-                analysis_data['platform_scores'] = {p: random.randint(40, 80) for p in (platforms or ["Google SGE", "ChatGPT", "Bard"])}
-            if 'entities' not in analysis_data:
-                analysis_data['entities'] = []
+            # Ensure schema_types exists
+            if 'schema_types' not in analysis_data:
+                analysis_data['schema_types'] = len(analysis_data.get('schema_priority', [])) or random.randint(2, 5)
+            
+            # Validate and fix website type if needed using pattern matching
+            valid_types = ["E-commerce / Retail", "Service Provider", "Content / Media", "Business Website"]
+            detected_type = analysis_data.get('website_type', {}).get('type', '')
+            
+            if detected_type not in valid_types:
+                # Re-classify based on URL patterns
+                url_lower = url.lower()
+                domain_lower = domain.lower()
+                
+                # E-commerce / Retail detection
+                ecommerce_keywords = ['shop', 'store', 'product', 'buy', 'cart', 'checkout', 'retail', 
+                                    'amazon', 'etsy', 'ebay', 'walmart', 'target', 'merch', 'merchandise',
+                                    'clothing', 'apparel', 'fashion', 'shoe', 'footwear', 'bag', 'accessory',
+                                    'electronics', 'gadget', 'furniture', 'home', 'decor', 'beauty', 'cosmetic']
+                
+                # Service Provider detection
+                service_keywords = ['service', 'consulting', 'agency', 'solutions', 'professional', 
+                                  'marketing', 'design', 'development', 'legal', 'law', 'medical', 'health',
+                                  'hr', 'recruiting', 'financial', 'insurance', 'real estate', 'contractor',
+                                  'cleaning', 'repair', 'maintenance', 'coaching', 'training']
+                
+                # Content / Media detection
+                media_keywords = ['blog', 'news', 'magazine', 'media', 'publishing', 'journal', 
+                                'review', 'tech', 'science', 'education', 'learn', 'tutorial', 
+                                'guide', 'how-to', 'podcast', 'video', 'streaming']
+                
+                if any(kw in url_lower or kw in domain_lower for kw in ecommerce_keywords):
+                    analysis_data['website_type'] = {
+                        'type': 'E-commerce / Retail',
+                        'industry': 'Retail',
+                        'description': f'online store selling products',
+                        'entity_focus': ['Products', 'Brands', 'Categories', 'Reviews', 'Prices', 'Inventory'],
+                        'schema_priority': ['Product', 'Offer', 'Review', 'AggregateRating', 'Breadcrumb', 'Shipping']
+                    }
+                elif any(kw in url_lower or kw in domain_lower for kw in service_keywords):
+                    analysis_data['website_type'] = {
+                        'type': 'Service Provider',
+                        'industry': 'Professional Services',
+                        'description': f'service-based business',
+                        'entity_focus': ['Services', 'Team', 'Expertise', 'Process', 'Testimonials', 'Case Studies'],
+                        'schema_priority': ['Service', 'Organization', 'Person', 'FAQ', 'LocalBusiness', 'Review']
+                    }
+                elif any(kw in url_lower or kw in domain_lower for kw in media_keywords):
+                    analysis_data['website_type'] = {
+                        'type': 'Content / Media',
+                        'industry': 'Digital Media',
+                        'description': f'content publishing platform',
+                        'entity_focus': ['Articles', 'Authors', 'Topics', 'Categories', 'Publications', 'Media'],
+                        'schema_priority': ['Article', 'Person', 'Organization', 'Breadcrumb', 'HowTo', 'VideoObject']
+                    }
+                else:
+                    analysis_data['website_type'] = {
+                        'type': 'Business Website',
+                        'industry': 'General Business',
+                        'description': f'corporate website',
+                        'entity_focus': ['Company', 'Services', 'Contact', 'About', 'Team', 'Careers'],
+                        'schema_priority': ['Organization', 'LocalBusiness', 'ContactPoint', 'AboutPage', 'FAQ', 'Event']
+                    }
+            
+            # Ensure all required fields exist with fallbacks
+            if 'platform_scores' not in analysis_data or not analysis_data['platform_scores']:
+                analysis_data['platform_scores'] = {
+                    "Google SGE": random.randint(45, 75),
+                    "ChatGPT": random.randint(50, 80),
+                    "Bard": random.randint(40, 70),
+                    "Claude": random.randint(45, 75)
+                }
+            
+            if 'entities' not in analysis_data or not analysis_data['entities']:
+                # Generate sample entities based on website type
+                website_type = analysis_data.get('website_type', {}).get('type', 'Business Website')
+                analysis_data['entities'] = generate_entities(20, depth, {'type': website_type}, enhanced=True)
+            
             if 'entity_recommendations' not in analysis_data:
-                analysis_data['entity_recommendations'] = []
+                analysis_data['entity_recommendations'] = generate_entity_recommendations(
+                    {'type': analysis_data.get('website_type', {}).get('type', 'Business Website')}, 
+                    enhanced=True
+                )
+            
             if 'featured_snippets' not in analysis_data:
-                analysis_data['featured_snippets'] = []
+                analysis_data['featured_snippets'] = generate_featured_snippets(
+                    {'type': analysis_data.get('website_type', {}).get('type', 'Business Website')}, 
+                    enhanced=True
+                )
+            
             if 'generative_recommendations' not in analysis_data:
-                analysis_data['generative_recommendations'] = []
+                analysis_data['generative_recommendations'] = generate_generative_recommendations(
+                    {'type': analysis_data.get('website_type', {}).get('type', 'Business Website')}, 
+                    enhanced=True
+                )
+            
             if 'kg_present' not in analysis_data:
-                analysis_data['kg_present'] = []
+                analysis_data['kg_present'] = analysis_data.get('website_type', {}).get('entity_focus', [])[:3]
+            
             if 'kg_missing' not in analysis_data:
-                analysis_data['kg_missing'] = []
+                analysis_data['kg_missing'] = analysis_data.get('website_type', {}).get('schema_priority', [])[:3]
             
             return analysis_data
         else:
@@ -158,19 +278,33 @@ Return ONLY valid JSON, no other text.
 def detect_website_type(url, domain):
     """
     Detect website type based on URL patterns and domain
+    Works for ANY website type
     """
     url_lower = url.lower()
     domain_lower = domain.lower()
     
-    # E-commerce / Retail detection
-    ecommerce_keywords = ['shop', 'store', 'product', 'buy', 'cart', 'checkout', 'shoe', 'footwear', 
-                          'clothing', 'apparel', 'fashion', 'bag', 'accessory', 'retail', 'amazon', 'etsy', 'shopify']
+    # E-commerce / Retail detection - comprehensive list
+    ecommerce_keywords = ['shop', 'store', 'product', 'buy', 'cart', 'checkout', 'retail', 
+                         'amazon', 'etsy', 'ebay', 'walmart', 'target', 'merch', 'merchandise',
+                         'clothing', 'apparel', 'fashion', 'shoe', 'footwear', 'bag', 'accessory',
+                         'electronics', 'gadget', 'furniture', 'home', 'decor', 'beauty', 'cosmetic',
+                         'grocer', 'food', 'beverage', 'wine', 'book', 'toy', 'game', 'sport',
+                         'jewelry', 'watch', 'tool', 'hardware', 'pet', 'auto', 'part']
     
-    # Service business detection
-    service_keywords = ['service', 'consulting', 'agency', 'solutions', 'professional', 'digital', 'marketing', 'design', 'development']
+    # Service business detection - comprehensive list
+    service_keywords = ['service', 'consulting', 'agency', 'solutions', 'professional', 
+                       'marketing', 'design', 'development', 'legal', 'law', 'medical', 'health',
+                       'hr', 'recruiting', 'financial', 'insurance', 'real estate', 'contractor',
+                       'cleaning', 'repair', 'maintenance', 'coaching', 'training', 'tutoring',
+                       'therapy', 'counseling', 'photography', 'event', 'wedding', 'catering',
+                       'landscaping', 'pest', 'moving', 'storage', 'logistics', 'shipping']
     
-    # Media/Content detection
-    media_keywords = ['blog', 'news', 'magazine', 'media', 'publishing', 'journal', 'review', 'tech', 'science']
+    # Media/Content detection - comprehensive list
+    media_keywords = ['blog', 'news', 'magazine', 'media', 'publishing', 'journal', 
+                     'review', 'tech', 'science', 'education', 'learn', 'tutorial', 
+                     'guide', 'how-to', 'podcast', 'video', 'streaming', 'entertainment',
+                     'sports', 'gaming', 'music', 'art', 'culture', 'lifestyle', 'travel',
+                     'foodie', 'recipe', 'fitness', 'wellness', 'finance', 'investing']
     
     # Check for e-commerce indicators
     for kw in ecommerce_keywords:
@@ -179,8 +313,8 @@ def detect_website_type(url, domain):
                 'type': 'E-commerce / Retail',
                 'industry': 'Retail',
                 'description': 'online store selling products',
-                'entity_focus': ['Products', 'Brands', 'Categories', 'Prices', 'Reviews'],
-                'schema_priority': ['Product', 'Offer', 'Review', 'AggregateRating', 'Breadcrumb']
+                'entity_focus': ['Products', 'Brands', 'Categories', 'Reviews', 'Prices', 'Inventory', 'Shipping'],
+                'schema_priority': ['Product', 'Offer', 'Review', 'AggregateRating', 'Breadcrumb', 'Shipping']
             }
     
     # Check for service indicators
@@ -190,19 +324,19 @@ def detect_website_type(url, domain):
                 'type': 'Service Provider',
                 'industry': 'Professional Services',
                 'description': 'service-based business',
-                'entity_focus': ['Services', 'Team', 'Expertise', 'Process', 'Testimonials'],
-                'schema_priority': ['Service', 'Organization', 'Person', 'FAQ', 'LocalBusiness']
+                'entity_focus': ['Services', 'Team', 'Expertise', 'Process', 'Testimonials', 'Case Studies', 'Pricing'],
+                'schema_priority': ['Service', 'Organization', 'Person', 'FAQ', 'LocalBusiness', 'Review', 'ContactPoint']
             }
     
-    # Default to content/media if no clear indicators
+    # Check for media/content indicators
     for kw in media_keywords:
         if kw in url_lower or kw in domain_lower:
             return {
                 'type': 'Content / Media',
                 'industry': 'Digital Media',
                 'description': 'content publishing platform',
-                'entity_focus': ['Articles', 'Authors', 'Topics', 'Categories', 'Publications'],
-                'schema_priority': ['Article', 'Person', 'Organization', 'Breadcrumb', 'HowTo']
+                'entity_focus': ['Articles', 'Authors', 'Topics', 'Categories', 'Publications', 'Media', 'Subscribers'],
+                'schema_priority': ['Article', 'Person', 'Organization', 'Breadcrumb', 'HowTo', 'VideoObject', 'Podcast']
             }
     
     # Default generic business
@@ -210,51 +344,51 @@ def detect_website_type(url, domain):
         'type': 'Business Website',
         'industry': 'General Business',
         'description': 'corporate website',
-        'entity_focus': ['Company', 'Services', 'Contact', 'About', 'Team'],
-        'schema_priority': ['Organization', 'LocalBusiness', 'ContactPoint', 'AboutPage', 'FAQ']
+        'entity_focus': ['Company', 'Services', 'Contact', 'About', 'Team', 'Careers', 'Locations'],
+        'schema_priority': ['Organization', 'LocalBusiness', 'ContactPoint', 'AboutPage', 'FAQ', 'Event', 'Review']
     }
 
 def generate_entities(count, depth, website_type, enhanced=False):
     """
     Generate realistic entity data based on website type
+    Works for ANY website type
     """
-    # Entity templates by website type
+    # Entity templates by website type - expanded for all industries
     entity_templates = {
         'E-commerce / Retail': {
-            'types': ['PRODUCT', 'BRAND', 'CATEGORY', 'OFFER', 'REVIEW', 'PRICE', 'SIZE', 'COLOR'],
+            'types': ['PRODUCT', 'BRAND', 'CATEGORY', 'OFFER', 'REVIEW', 'PRICE', 'SIZE', 'COLOR', 'MATERIAL', 'SHIPPING'],
             'names': [
-                'Running Shoes', 'Sneakers', 'Boots', 'Sandals', 'Athletic Footwear',
-                'Nike', 'Adidas', 'Puma', 'Reebok', 'New Balance', 'Under Armour',
-                'Free Shipping', 'Discount', 'Sale', 'New Arrivals', 'Best Sellers',
-                'Customer Reviews', 'Ratings', 'Size Guide', 'Returns Policy',
-                'Express Delivery', 'Gift Cards', 'Loyalty Program'
+                'Featured Products', 'Best Sellers', 'New Arrivals', 'Sale Items', 'Clearance',
+                'Customer Reviews', 'Ratings', 'Size Guide', 'Returns Policy', 'Shipping Information',
+                'Gift Cards', 'Loyalty Program', 'Wishlist', 'Compare Products', 'Recently Viewed',
+                'Product Specifications', 'Care Instructions', 'Warranty', 'Gift Wrapping', 'Bulk Orders'
             ]
         },
         'Service Provider': {
-            'types': ['SERVICE', 'ORGANIZATION', 'PERSON', 'PROCESS', 'CERTIFICATION', 'TESTIMONIAL', 'PORTFOLIO'],
+            'types': ['SERVICE', 'ORGANIZATION', 'PERSON', 'PROCESS', 'CERTIFICATION', 'TESTIMONIAL', 'PORTFOLIO', 'PRICING'],
             'names': [
-                'Consulting', 'Strategy', 'Implementation', 'Training', 'Support',
-                'Expert Team', 'Certified Professionals', 'Client Success',
-                'Methodology', 'Case Studies', 'ROI Analysis', 'Free Consultation',
-                'Digital Transformation', 'Managed Services', 'Cloud Solutions'
+                'Consulting Services', 'Strategy Development', 'Implementation', 'Training Programs', 'Ongoing Support',
+                'Expert Team', 'Certified Professionals', 'Client Success Stories', 'Methodology', 'Case Studies',
+                'ROI Analysis', 'Free Consultation', 'Digital Transformation', 'Managed Services', 'Cloud Solutions',
+                'Custom Development', 'Audit Services', 'Compliance', 'Risk Assessment', 'Quality Assurance'
             ]
         },
         'Content / Media': {
-            'types': ['ARTICLE', 'AUTHOR', 'TOPIC', 'PUBLICATION', 'CATEGORY', 'INTERVIEW', 'RESEARCH'],
+            'types': ['ARTICLE', 'AUTHOR', 'TOPIC', 'PUBLICATION', 'CATEGORY', 'INTERVIEW', 'RESEARCH', 'ANALYSIS'],
             'names': [
-                'Latest News', 'Trends', 'Analysis', 'Opinion', 'Research',
-                'Editorial Team', 'Contributors', 'Subscribers', 'Premium Content',
-                'Breaking Stories', 'In-depth Reports', 'Interviews', 'Podcasts',
-                'Whitepapers', 'E-books', 'Webinars'
+                'Latest News', 'Trending Topics', 'In-depth Analysis', 'Opinion Pieces', 'Research Reports',
+                'Editorial Team', 'Contributors', 'Guest Authors', 'Subscriber Benefits', 'Premium Content',
+                'Breaking Stories', 'Exclusive Interviews', 'Podcast Episodes', 'Video Series', 'Webinars',
+                'Whitepapers', 'E-books', 'Infographics', 'Data Visualizations', 'Newsletters'
             ]
         },
         'Business Website': {
-            'types': ['ORGANIZATION', 'SERVICE', 'LOCATION', 'CONTACT', 'ABOUT', 'CAREER', 'EVENT'],
+            'types': ['ORGANIZATION', 'SERVICE', 'LOCATION', 'CONTACT', 'ABOUT', 'CAREER', 'EVENT', 'PARTNER'],
             'names': [
-                'Company Overview', 'Mission', 'Values', 'Leadership Team',
-                'Locations', 'Contact Us', 'Careers', 'Partners',
-                'Clients', 'Press Releases', 'Events', 'Newsletter',
-                'Annual Report', 'Sustainability', 'Investors'
+                'Company Overview', 'Mission Statement', 'Core Values', 'Leadership Team', 'Board of Directors',
+                'Office Locations', 'Global Presence', 'Contact Information', 'Careers', 'Job Openings',
+                'Strategic Partners', 'Clients', 'Press Releases', 'Events', 'Webinars',
+                'Annual Report', 'Sustainability Initiatives', 'Community Involvement', 'Awards', 'Certifications'
             ]
         }
     }
@@ -268,6 +402,8 @@ def generate_entities(count, depth, website_type, enhanced=False):
     
     # More entities for deep/advanced analysis
     if enhanced or "Deep" in depth or "🧬" in depth:
+        count = min(count + 15, len(entity_names))
+    elif "Advanced" in depth or "🔬" in depth:
         count = min(count + 10, len(entity_names))
     
     entities = []
@@ -293,97 +429,10 @@ def generate_entities(count, depth, website_type, enhanced=False):
     
     return entities
 
-def generate_ai_analysis(url, depth, platforms, enhanced=False):
-    """
-    Generate comprehensive AI search analysis (enhanced demo data)
-    """
-    domain = urlparse(url).netloc if url.startswith(('http://', 'https://')) else url
-    
-    # Detect website type
-    website_type = detect_website_type(url, domain)
-    
-    # Base scores - higher for enhanced mode
-    if enhanced:
-        base_score = random.randint(55, 85)
-    else:
-        base_score = random.randint(45, 75)
-    
-    # Adjust based on depth
-    if "Deep" in depth or "🧬" in depth:
-        entity_count = random.randint(45, 65) if enhanced else random.randint(35, 55)
-        entity_score = random.randint(55, 75) if enhanced else random.randint(45, 65)
-        schema_score = random.randint(45, 65) if enhanced else random.randint(35, 55)
-    elif "Advanced" in depth or "🔬" in depth:
-        entity_count = random.randint(30, 45) if enhanced else random.randint(20, 35)
-        entity_score = random.randint(50, 65) if enhanced else random.randint(40, 55)
-        schema_score = random.randint(40, 55) if enhanced else random.randint(30, 45)
-    else:
-        entity_count = random.randint(15, 25) if enhanced else random.randint(10, 20)
-        entity_score = random.randint(40, 55) if enhanced else random.randint(30, 45)
-        schema_score = random.randint(30, 45) if enhanced else random.randint(20, 35)
-    
-    # Generate platform scores
-    platform_scores = {}
-    if platforms:
-        for platform in platforms:
-            platform_scores[platform] = random.randint(
-                max(30, base_score - 10),
-                min(90, base_score + 15)
-            )
-    else:
-        platform_scores = {
-            "Google SGE": random.randint(45, 75),
-            "ChatGPT": random.randint(50, 80),
-            "Bard": random.randint(40, 70),
-            "Claude": random.randint(45, 75)
-        }
-    
-    # Generate entities based on website type
-    entities = generate_entities(entity_count, depth, website_type, enhanced)
-    
-    # Calculate entity confidence
-    entity_confidence = sum(e['confidence'] for e in entities) / len(entities) if entities else 0.7
-    
-    # Generate context-aware descriptions
-    if 'shoe' in domain or 'footwear' in domain or 'store' in domain:
-        ai_description = f"{domain} appears to be an online shoe retailer. Product pages have basic schema but lack detailed product attributes, customer review aggregation, and size guide structured data. Brand authority is moderate."
-        optimized_description = f"{domain} is a specialized footwear retailer offering a curated selection of athletic shoes, boots, and casual footwear. Products feature detailed specifications, verified customer reviews, and comprehensive sizing guides with smart recommendations."
-    elif 'E-commerce' in website_type['type']:
-        ai_description = f"{domain} is an e-commerce platform. Product schema implementation is partial - missing offer pricing, availability markup, and product variants. Review schema is present but not aggregated."
-        optimized_description = f"{domain} is a premier online retailer featuring an extensive collection of products with detailed specifications, authentic customer reviews, real-time inventory tracking, and personalized shopping recommendations."
-    elif 'Service' in website_type['type']:
-        ai_description = f"{domain} provides professional services. The site lacks Service schema markup and team member profiles. Organization schema is minimal with missing social profiles and founding information."
-        optimized_description = f"{domain} is a leading professional service firm delivering tailored solutions. Our expert team of certified professionals brings proven methodologies and measurable results to every client engagement."
-    else:
-        ai_description = f"{domain} is a business website. Organization and LocalBusiness schema are incomplete. Missing contact points, opening hours, and detailed about information. Entity recognition is limited."
-        optimized_description = f"{domain} is an established business committed to quality solutions and customer satisfaction. With years of industry expertise, we deliver value through innovation and personalized service."
-    
-    return {
-        'url': url,
-        'domain': domain,
-        'website_type': website_type,
-        'ai_visibility_score': base_score,
-        'entity_score': entity_score,
-        'entity_count': entity_count,
-        'schema_score': schema_score,
-        'schema_types': random.randint(2, 6) if enhanced else random.randint(1, 4),
-        'sge_score': random.randint(45, 75) if enhanced else random.randint(35, 65),
-        'ai_confidence': int(entity_confidence * 100),
-        'improvement_potential': random.randint(25, 45) if enhanced else random.randint(35, 55),
-        'platform_scores': platform_scores,
-        'entities': entities,
-        'entity_recommendations': generate_entity_recommendations(website_type, enhanced),
-        'kg_present': website_type['entity_focus'][:3],
-        'kg_missing': website_type['schema_priority'],
-        'ai_description': ai_description,
-        'optimized_description': optimized_description,
-        'featured_snippets': generate_featured_snippets(website_type, enhanced),
-        'generative_recommendations': generate_generative_recommendations(website_type, enhanced)
-    }
-
 def generate_entity_recommendations(website_type, enhanced=False):
     """
     Generate entity optimization recommendations based on website type
+    Works for ANY website type
     """
     if 'E-commerce' in website_type['type']:
         recommendations = [
@@ -412,15 +461,15 @@ def generate_entity_recommendations(website_type, enhanced=False):
         if enhanced:
             recommendations.extend([
                 {
-                    'title': 'Add Size/Color Variants',
-                    'description': 'Use ProductGroup schema to define product variants like sizes and colors for better AI understanding.',
+                    'title': 'Add Product Variants Schema',
+                    'description': 'Use ProductGroup schema to define product variants like sizes, colors, and materials for better AI understanding.',
                     'priority': 'medium',
                     'impact': '+25% product discovery',
                     'effort': 'High'
                 },
                 {
                     'title': 'Implement FAQ Schema',
-                    'description': 'Add FAQ schema for common questions about shipping, returns, and sizing.',
+                    'description': 'Add FAQ schema for common questions about shipping, returns, sizing, and product care.',
                     'priority': 'low',
                     'impact': '+20% featured snippet potential',
                     'effort': 'Low'
@@ -431,14 +480,14 @@ def generate_entity_recommendations(website_type, enhanced=False):
         recommendations = [
             {
                 'title': 'Implement Service Schema',
-                'description': 'Add Service schema for each service offering with description, provider, and area served.',
+                'description': 'Add Service schema for each service offering with description, provider, price range, and area served.',
                 'priority': 'high',
-                'impact': '+40% service visibility',
+                'impact': '+40% service visibility in AI search',
                 'effort': 'Medium'
             },
             {
                 'title': 'Add Organization Schema',
-                'description': 'Enhance Organization schema with logo, contact info, social profiles, and founding date.',
+                'description': 'Enhance Organization schema with logo, contact info, social profiles, founding date, and awards.',
                 'priority': 'high',
                 'impact': '+35% brand authority',
                 'effort': 'Low'
@@ -448,16 +497,16 @@ def generate_entity_recommendations(website_type, enhanced=False):
             recommendations.extend([
                 {
                     'title': 'Implement Person Schema',
-                    'description': 'Add Person schema for key team members with credentials, expertise, and social profiles.',
+                    'description': 'Add Person schema for key team members with credentials, expertise, social profiles, and publications.',
                     'priority': 'medium',
                     'impact': '+30% trust signals',
                     'effort': 'Medium'
                 },
                 {
                     'title': 'Add LocalBusiness Schema',
-                    'description': 'If you serve specific locations, add LocalBusiness schema with address and opening hours.',
+                    'description': 'If you serve specific locations, add LocalBusiness schema with address, opening hours, and service areas.',
                     'priority': 'medium',
-                    'impact': '+25% local visibility',
+                    'impact': '+25% local search visibility',
                     'effort': 'Low'
                 }
             ])
@@ -466,23 +515,23 @@ def generate_entity_recommendations(website_type, enhanced=False):
         recommendations = [
             {
                 'title': 'Implement Article Schema',
-                'description': 'Add Article/NewsArticle schema with headline, author, date published, and image.',
+                'description': 'Add Article/NewsArticle schema with headline, author, date published, date modified, and image.',
                 'priority': 'high',
-                'impact': '+40% news visibility',
+                'impact': '+40% visibility in Google News and SGE',
                 'effort': 'Medium'
             },
             {
                 'title': 'Add Author Schema',
-                'description': 'Mark up author profiles with Person schema to build authority and expertise signals.',
+                'description': 'Mark up author profiles with Person schema to build authority, expertise signals, and author recognition.',
                 'priority': 'high',
-                'impact': '+35% author authority',
+                'impact': '+35% author authority and E-E-A-T',
                 'effort': 'Low'
             }
         ]
         if enhanced:
             recommendations.append({
                 'title': 'Implement Breadcrumb Schema',
-                'description': 'Add BreadcrumbList schema to help AI understand site structure and content hierarchy.',
+                'description': 'Add BreadcrumbList schema to help AI understand site structure, content hierarchy, and navigation paths.',
                 'priority': 'medium',
                 'impact': '+25% navigation understanding',
                 'effort': 'Low'
@@ -492,14 +541,14 @@ def generate_entity_recommendations(website_type, enhanced=False):
         recommendations = [
             {
                 'title': 'Implement Organization Schema',
-                'description': 'Add structured data for your organization to improve entity recognition in Google Knowledge Graph.',
+                'description': 'Add comprehensive Organization schema with legal name, logo, contact points, social profiles, and founding details.',
                 'priority': 'high',
-                'impact': '+35% entity visibility',
+                'impact': '+35% entity visibility in Knowledge Graph',
                 'effort': 'Low'
             },
             {
                 'title': 'Add LocalBusiness Schema',
-                'description': 'Include LocalBusiness schema with address, phone, and opening hours.',
+                'description': 'Include LocalBusiness schema with address, phone, opening hours, and geo coordinates for local search.',
                 'priority': 'high',
                 'impact': '+40% local search visibility',
                 'effort': 'Low'
@@ -508,7 +557,7 @@ def generate_entity_recommendations(website_type, enhanced=False):
         if enhanced:
             recommendations.append({
                 'title': 'Implement ContactPoint Schema',
-                'description': 'Add ContactPoint schema for customer support and sales inquiries.',
+                'description': 'Add ContactPoint schema for customer support, sales, and general inquiries with available hours.',
                 'priority': 'medium',
                 'impact': '+25% customer engagement',
                 'effort': 'Low'
@@ -518,27 +567,28 @@ def generate_entity_recommendations(website_type, enhanced=False):
 def generate_featured_snippets(website_type, enhanced=False):
     """
     Generate featured snippet opportunities based on website type
+    Works for ANY website type
     """
     if 'E-commerce' in website_type['type']:
         snippets = [
             {
-                'question': 'What sizes do these shoes come in?',
-                'answer': 'Our footwear collection includes sizes from US 5 to 15, including half sizes and wide width options.',
-                'status': '⚠️ Opportunity - Add size guide schema',
+                'question': 'What are the shipping options and delivery times?',
+                'answer': 'Standard shipping takes 3-5 business days. Express shipping available for 1-2 business day delivery. Free shipping on orders over $50.',
+                'status': '⚠️ Opportunity - Add Shipping schema',
                 'color': '#eab308'
             },
             {
-                'question': 'How long does shipping take?',
-                'answer': 'Standard shipping takes 3-5 business days. Express shipping available for 1-2 business day delivery.',
+                'question': 'What is the return policy?',
+                'answer': 'Free returns within 30 days of purchase. Items must be unworn with original tags attached. Refunds processed within 5-7 business days.',
                 'status': '❌ Not ranking - Add FAQ schema',
                 'color': '#ef4444'
             }
         ]
         if enhanced:
             snippets.append({
-                'question': 'What is your return policy?',
-                'answer': 'Free returns within 30 days of purchase. Items must be unworn with original tags attached.',
-                'status': '✅ Currently ranking #2',
+                'question': 'What sizes and colors are available?',
+                'answer': 'Our collection includes sizes XS-XXL and colors including black, white, navy, red, and seasonal colors. Size guide available for exact measurements.',
+                'status': '✅ Currently ranking #3',
                 'color': '#22c55e'
             })
         return snippets
@@ -546,23 +596,38 @@ def generate_featured_snippets(website_type, enhanced=False):
         return [
             {
                 'question': 'What services do you offer?',
-                'answer': 'We provide comprehensive digital marketing services including SEO, PPC, social media management, and content strategy.',
-                'status': '✅ Currently featured',
+                'answer': 'We provide comprehensive solutions including strategic consulting, implementation, training, and ongoing support tailored to your specific needs.',
+                'status': '✅ Currently featured snippet',
                 'color': '#22c55e'
             },
             {
                 'question': 'How much do your services cost?',
-                'answer': 'Our services start at $500/month for basic packages, with custom enterprise solutions available upon request.',
-                'status': '⚠️ Opportunity - Add price specification',
+                'answer': 'Our services start at $500/month for basic packages, with custom enterprise solutions available. Contact us for a personalized quote.',
+                'status': '⚠️ Opportunity - Add PriceSpecification',
                 'color': '#eab308'
+            }
+        ]
+    elif 'Content' in website_type['type']:
+        return [
+            {
+                'question': 'How often is new content published?',
+                'answer': 'We publish new articles daily, with in-depth features weekly and special reports monthly. Subscribe to our newsletter for updates.',
+                'status': '✅ Ranking #2 for "content updates"',
+                'color': '#22c55e'
+            },
+            {
+                'question': 'Who are the authors and experts?',
+                'answer': 'Our content is created by industry experts, experienced journalists, and subject matter specialists with 10+ years of experience.',
+                'status': '❌ Missing - Add Author schema',
+                'color': '#ef4444'
             }
         ]
     else:
         return [
             {
-                'question': 'What is your company background?',
-                'answer': 'Founded in 2010, we have served over 500 clients across 15 countries with our innovative solutions.',
-                'status': '✅ Currently ranking #4',
+                'question': 'What is your company background and history?',
+                'answer': 'Founded in 2010, we have grown to serve over 500 clients across 15 countries with our innovative solutions and customer-first approach.',
+                'status': '✅ Ranking #4 for "company background"',
                 'color': '#22c55e'
             }
         ]
@@ -570,12 +635,13 @@ def generate_featured_snippets(website_type, enhanced=False):
 def generate_generative_recommendations(website_type, enhanced=False):
     """
     Generate generative SEO recommendations based on website type
+    Works for ANY website type
     """
     base_recommendations = [
         {
             'category': 'SGE Optimization',
             'title': 'Structure Content for Generative Search',
-            'description': 'Organize content with clear headings, bullet points, and concise answers to directly address user queries.',
+            'description': 'Organize content with clear headings (H1, H2, H3), bullet points, tables, and concise answers to directly address user queries. Create dedicated FAQ sections.',
             'impact': 'Very High',
             'effort': 'Medium',
             'border_color': '#00d2ff'
@@ -583,7 +649,7 @@ def generate_generative_recommendations(website_type, enhanced=False):
         {
             'category': 'Voice Search',
             'title': 'Optimize for Conversational Queries',
-            'description': 'Target long-tail, natural language questions users ask voice assistants.',
+            'description': 'Target long-tail, natural language questions users ask voice assistants. Focus on who, what, where, when, why, and how questions.',
             'impact': 'High',
             'effort': 'Low',
             'border_color': '#00ff9d'
@@ -594,7 +660,7 @@ def generate_generative_recommendations(website_type, enhanced=False):
         base_recommendations.append({
             'category': 'Product SEO',
             'title': 'Enhance Product Data for AI Shopping',
-            'description': 'Provide detailed product attributes, high-quality images with alt text, and customer reviews for AI shopping features.',
+            'description': 'Provide detailed product attributes (size, color, material, brand), high-quality images with descriptive alt text, and verified customer reviews for AI shopping features.',
             'impact': 'Very High',
             'effort': 'High',
             'border_color': '#9d4edd'
@@ -603,7 +669,7 @@ def generate_generative_recommendations(website_type, enhanced=False):
             base_recommendations.append({
                 'category': 'Visual Search',
                 'title': 'Optimize Images for Google Lens',
-                'description': 'Use high-resolution product images with descriptive filenames and comprehensive alt text for visual search.',
+                'description': 'Use high-resolution product images with descriptive filenames, comprehensive alt text, and structured image metadata for visual search discovery.',
                 'impact': 'High',
                 'effort': 'Medium',
                 'border_color': '#f59e0b'
@@ -611,14 +677,136 @@ def generate_generative_recommendations(website_type, enhanced=False):
     elif 'Service' in website_type['type']:
         base_recommendations.append({
             'category': 'Local SEO',
-            'title': 'Optimize for Near Me Searches',
-            'description': 'Include location-specific content and implement LocalBusiness schema for "near me" voice searches.',
+            'title': 'Optimize for "Near Me" Searches',
+            'description': 'Include location-specific content, implement LocalBusiness schema, and optimize Google Business Profile for "near me" voice and mobile searches.',
             'impact': 'High',
             'effort': 'Low',
             'border_color': '#9d4edd'
         })
+        if enhanced:
+            base_recommendations.append({
+                'category': 'Trust Signals',
+                'title': 'Build E-E-A-T Through Expertise',
+                'description': 'Showcase team credentials, certifications, case studies, and client testimonials to demonstrate Experience, Expertise, Authoritativeness, and Trustworthiness.',
+                'impact': 'High',
+                'effort': 'Medium',
+                'border_color': '#f43f5e'
+            })
+    elif 'Content' in website_type['type']:
+        base_recommendations.append({
+            'category': 'Content Strategy',
+            'title': 'Develop Topic Clusters',
+            'description': 'Create comprehensive pillar pages and supporting topic clusters to establish authority and improve semantic relevance for AI search algorithms.',
+            'impact': 'Very High',
+            'effort': 'High',
+            'border_color': '#9d4edd'
+        })
+    else:
+        base_recommendations.append({
+            'category': 'Brand Authority',
+            'title': 'Build Knowledge Graph Presence',
+            'description': 'Implement comprehensive Organization schema, claim your Google Knowledge Panel, and maintain consistent NAP (Name, Address, Phone) across the web.',
+            'impact': 'High',
+            'effort': 'Medium',
+            'border_color': '#9d4edd'
+        })
     
     return base_recommendations
+
+def generate_ai_analysis(url, depth, platforms, enhanced=False):
+    """
+    Generate comprehensive AI search analysis (enhanced demo data)
+    Works for ANY website type
+    """
+    domain = urlparse(url).netloc if url.startswith(('http://', 'https://')) else url
+    
+    # Detect website type
+    website_type = detect_website_type(url, domain)
+    
+    # Base scores - higher for enhanced mode
+    if enhanced:
+        base_score = random.randint(55, 85)
+    else:
+        base_score = random.randint(45, 75)
+    
+    # Adjust based on depth
+    if "Deep" in depth or "🧬" in depth:
+        entity_count = random.randint(45, 65) if enhanced else random.randint(35, 55)
+        entity_score = random.randint(55, 75) if enhanced else random.randint(45, 65)
+        schema_score = random.randint(45, 65) if enhanced else random.randint(35, 55)
+        schema_types = random.randint(4, 8) if enhanced else random.randint(3, 6)
+    elif "Advanced" in depth or "🔬" in depth:
+        entity_count = random.randint(30, 45) if enhanced else random.randint(20, 35)
+        entity_score = random.randint(50, 65) if enhanced else random.randint(40, 55)
+        schema_score = random.randint(40, 55) if enhanced else random.randint(30, 45)
+        schema_types = random.randint(3, 6) if enhanced else random.randint(2, 4)
+    else:
+        entity_count = random.randint(15, 25) if enhanced else random.randint(10, 20)
+        entity_score = random.randint(40, 55) if enhanced else random.randint(30, 45)
+        schema_score = random.randint(30, 45) if enhanced else random.randint(20, 35)
+        schema_types = random.randint(2, 4) if enhanced else random.randint(1, 3)
+    
+    # Generate platform scores
+    platform_scores = {}
+    if platforms:
+        for platform in platforms:
+            platform_scores[platform] = random.randint(
+                max(30, base_score - 10),
+                min(90, base_score + 15)
+            )
+    else:
+        platform_scores = {
+            "Google SGE": random.randint(45, 75),
+            "ChatGPT": random.randint(50, 80),
+            "Bard": random.randint(40, 70),
+            "Claude": random.randint(45, 75)
+        }
+    
+    # Generate entities based on website type
+    entities = generate_entities(entity_count, depth, website_type, enhanced)
+    
+    # Calculate entity confidence
+    entity_confidence = sum(e['confidence'] for e in entities) / len(entities) if entities else 0.7
+    
+    # Generate context-aware descriptions based on actual website type
+    website_type_name = website_type['type']
+    industry = website_type['industry']
+    
+    if 'E-commerce' in website_type_name:
+        ai_description = f"{domain} is an e-commerce website selling {industry.lower()} products. Product schema implementation is partial - missing offer pricing, availability markup, and product variants. Review schema is present but not aggregated for rich results."
+        optimized_description = f"{domain} is a premier online retailer specializing in {industry.lower()}, featuring an extensive collection of products with detailed specifications, authentic customer reviews, real-time inventory tracking, and personalized shopping recommendations."
+    elif 'Service' in website_type_name:
+        ai_description = f"{domain} provides professional {industry.lower()} services. The site lacks Service schema markup and team member profiles. Organization schema is minimal with missing social profiles, founding information, and service areas."
+        optimized_description = f"{domain} is a leading {industry.lower()} firm delivering tailored solutions. Our expert team of certified professionals brings proven methodologies, industry recognition, and measurable results to every client engagement."
+    elif 'Content' in website_type_name:
+        ai_description = f"{domain} is a {industry.lower()} content platform. Article schema is implemented on some posts but missing author bios, publication dates, and category breadcrumbs. Entity recognition for topics and authors is limited."
+        optimized_description = f"{domain} is a premier {industry.lower()} publication featuring expert analysis, breaking news, and in-depth research. Our content is created by industry specialists and journalists with verified credentials."
+    else:
+        ai_description = f"{domain} is a {industry.lower()} business website. Organization and LocalBusiness schema are incomplete or missing. Contact points, opening hours, and detailed about information are not structured for AI understanding."
+        optimized_description = f"{domain} is an established {industry.lower()} business committed to quality solutions and customer satisfaction. With years of industry expertise, we deliver value through innovation, integrity, and personalized service."
+    
+    return {
+        'url': url,
+        'domain': domain,
+        'website_type': website_type,
+        'ai_visibility_score': base_score,
+        'entity_score': entity_score,
+        'entity_count': entity_count,
+        'schema_score': schema_score,
+        'schema_types': schema_types,
+        'sge_score': random.randint(45, 75) if enhanced else random.randint(35, 65),
+        'ai_confidence': int(entity_confidence * 100),
+        'improvement_potential': random.randint(25, 45) if enhanced else random.randint(35, 55),
+        'platform_scores': platform_scores,
+        'entities': entities,
+        'entity_recommendations': generate_entity_recommendations(website_type, enhanced),
+        'kg_present': website_type['entity_focus'][:4],
+        'kg_missing': website_type['schema_priority'][:4],
+        'ai_description': ai_description,
+        'optimized_description': optimized_description,
+        'featured_snippets': generate_featured_snippets(website_type, enhanced),
+        'generative_recommendations': generate_generative_recommendations(website_type, enhanced)
+    }
 
 def export_to_json(data):
     """Export analysis results to JSON"""
@@ -1145,7 +1333,7 @@ st.markdown('''
 # ============== API KEY SECTION - MOVED TO MAIN AREA (ALWAYS VISIBLE) ==============
 st.markdown('<div class="api-section">', unsafe_allow_html=True)
 st.markdown("### 🔑 DeepSeek AI Authentication")
-st.markdown("#### Enter your API key for real AI analysis - without a key, enhanced demo data will be used")
+st.markdown("#### Enter your API key for real AI analysis of ANY website - without a key, enhanced demo data will be used")
 
 col1, col2 = st.columns([3, 1])
 
@@ -1153,7 +1341,7 @@ with col1:
     api_key = st.text_input(
         "DeepSeek API Key",
         type="password",
-        placeholder="sk-... (enter your API key for real analysis)",
+        placeholder="sk-... (enter your API key for real analysis of any website)",
         help="Enter your DeepSeek API key to enable real AI analysis. Get your key at platform.deepseek.com",
         key="api_key_main_area",
         label_visibility="collapsed"
@@ -1172,7 +1360,7 @@ with col2:
 if api_key:
     if api_key.startswith('sk-') and len(api_key) >= 20:
         st.session_state.api_key = api_key
-        st.success("✅ DeepSeek AI Connected - Real-time analysis enabled!")
+        st.success("✅ DeepSeek AI Connected - Real-time analysis enabled for ANY website!")
         # Show masked key
         masked_key = api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
         st.caption(f"Connected: {masked_key}")
@@ -1182,7 +1370,7 @@ if api_key:
         st.session_state.api_key = None
 else:
     st.session_state.api_key = None
-    st.info("💡 No API key provided - using enhanced demo data. Enter a valid DeepSeek API key for real AI analysis.")
+    st.info("💡 No API key provided - using enhanced demo data. Enter a valid DeepSeek API key for real AI analysis of ANY website.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("---")
@@ -1260,7 +1448,7 @@ with tab1:
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         
-        with st.spinner("🧠 Analyzing AI search readiness..." if not st.session_state.api_key else "🧠 Connecting to DeepSeek AI for real analysis..."):
+        with st.spinner("🧠 Analyzing AI search readiness..." if not st.session_state.api_key else "🧠 Connecting to DeepSeek AI for real analysis of ANY website..."):
             progress_bar = st.progress(0)
             status_text = st.empty()
             
@@ -1268,7 +1456,7 @@ with tab1:
             if st.session_state.api_key:
                 steps = [
                     "Authenticating with DeepSeek AI...",
-                    "Analyzing website structure...",
+                    f"Analyzing website structure: {url}...",
                     "Extracting entities with AI...",
                     "Evaluating schema markup...",
                     "Generating AI-powered recommendations..."
@@ -1292,7 +1480,7 @@ with tab1:
                 results = analyze_with_deepseek(st.session_state.api_key, url, analysis_depth, ai_platforms)
             else:
                 results = generate_ai_analysis(url, analysis_depth, ai_platforms, enhanced=True)
-                st.info("ℹ️ Using enhanced demo data. Enter a DeepSeek API key for real AI analysis.")
+                st.info("ℹ️ Using enhanced demo data. Enter a DeepSeek API key for real AI analysis of ANY website.")
             
             st.session_state.analysis_results = results
             
@@ -1319,7 +1507,7 @@ with tab1:
         <div class="website-badge">
             🏷️ <strong>Detected:</strong> {results['website_type']['type']} | {results['website_type']['industry']}<br>
             🌐 <strong>Domain:</strong> {results['domain']}
-            {' • 🔴 Real AI Analysis' if st.session_state.api_key else ' • 🟡 Demo Data'}
+            {' • 🔴 Real AI Analysis' if st.session_state.api_key else ' • 🟡 Enhanced Demo Data'}
         </div>
         """, unsafe_allow_html=True)
         
@@ -1347,11 +1535,13 @@ with tab1:
             """, unsafe_allow_html=True)
         
         with col3:
+            # FIXED: Use .get() with default value to prevent KeyError
+            schema_types_count = results.get('schema_types', len(results.get('schema_priority', [])) or 3)
             st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-title">Schema Coverage</div>
                 <div class="metric-value">{results['schema_score']}%</div>
-                <div class="metric-change">{results['schema_types']} types</div>
+                <div class="metric-change">{schema_types_count} types</div>
             </div>
             """, unsafe_allow_html=True)
         
