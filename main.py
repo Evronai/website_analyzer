@@ -1446,7 +1446,7 @@ with tab1:
             for i, step in enumerate(steps):
                 status_text.text(step)
                 time.sleep(0.4)
-                progress_bar.progress(((i + 1) / len(steps)) * 100)
+                progress_bar.progress((i + 1) / len(steps))  # Fixed: 0.0-1.0 range
             
             # Generate analysis
             results = generate_ai_analysis(url, analysis_depth, ai_platforms)
