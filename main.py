@@ -1204,7 +1204,48 @@ st.markdown("""
     
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+    
+    /* Force sidebar visibility */
+    [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
+        min-width: 250px !important;
+    }
+    
+    [data-testid="stSidebar"] > div:first-child {
+        background-color: #f8fafc;
+        padding: 2rem 1rem;
+    }
+    
+    /* Make sidebar inputs more visible */
+    [data-testid="stSidebar"] input {
+        background-color: white !important;
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        padding: 0.5rem !important;
+    }
+    
+    [data-testid="stSidebar"] input:focus {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    }
+    
+    /* Sidebar headers */
+    [data-testid="stSidebar"] h3 {
+        color: #1e293b;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    [data-testid="stSidebar"] h4 {
+        color: #475569;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        margin-bottom: 0.75rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1230,23 +1271,35 @@ st.markdown('''
 
 # ============== SIDEBAR (ENHANCED) ============== 
 with st.sidebar:
-    st.markdown("### 🧠 Advanced Configuration")
+    # Make sidebar more prominent
+    st.markdown("""
+    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 1rem; 
+                border-radius: 10px; 
+                margin-bottom: 1rem;
+                text-align: center;
+                color: white;'>
+        <h2 style='margin: 0; color: white;'>⚙️ Configuration</h2>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # API Settings - Now always visible, not in expander
-    st.markdown("#### ⚡ API Settings")
+    # API Settings - Always visible
+    st.markdown("### ⚡ API Settings")
+    st.markdown("*Optional - App works without API key*")
+    
     api_key = st.text_input(
-        "DeepSeek API Key (Optional)",
+        "DeepSeek API Key",
         type="password",
-        placeholder="sk-...",
+        placeholder="sk-xxxxxxxxxxxxx",
         help="Optional: Connect for enhanced AI analysis",
         key="api_key_input"
     )
     
     if api_key:
         st.session_state.api_key = api_key
-        st.success("✅ API Connected")
+        st.success("✅ API Connected!")
     else:
-        st.info("💡 API key is optional - all features work without it")
+        st.info("💡 Running in demo mode")
     
     st.markdown("---")
     
