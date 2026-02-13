@@ -1089,7 +1089,8 @@ with tab1:
             url = 'https://' + url
         
         with st.spinner("🧠 Analyzing AI search readiness..."):
-            progress_bar = st.progress(0, key="progress_bar_final")
+            # Fixed: Removed key parameter from st.progress
+            progress_bar = st.progress(0)
             status_text = st.empty()
             
             # Simulate analysis steps with status updates
