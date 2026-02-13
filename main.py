@@ -1205,7 +1205,7 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* Force sidebar visibility */
+    /* Force sidebar visibility with dark theme */
     [data-testid="stSidebar"] {
         display: block !important;
         visibility: visible !important;
@@ -1213,38 +1213,82 @@ st.markdown("""
     }
     
     [data-testid="stSidebar"] > div:first-child {
-        background-color: #f8fafc;
+        background-color: #1e293b !important;
         padding: 2rem 1rem;
+    }
+    
+    /* Make sidebar text visible with light colors */
+    [data-testid="stSidebar"] * {
+        color: #f1f5f9 !important;
     }
     
     /* Make sidebar inputs more visible */
     [data-testid="stSidebar"] input {
-        background-color: white !important;
-        border: 2px solid #e2e8f0 !important;
+        background-color: #334155 !important;
+        border: 2px solid #475569 !important;
         border-radius: 8px !important;
         padding: 0.5rem !important;
+        color: #f1f5f9 !important;
+    }
+    
+    [data-testid="stSidebar"] input::placeholder {
+        color: #94a3b8 !important;
     }
     
     [data-testid="stSidebar"] input:focus {
-        border-color: #667eea !important;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        border-color: #00d2ff !important;
+        box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.2) !important;
+        background-color: #475569 !important;
     }
     
-    /* Sidebar headers */
+    /* Sidebar headers with good contrast */
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3 {
-        color: #1e293b;
-        font-size: 1.1rem;
+        color: #ffffff !important;
         font-weight: 700;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
     }
     
     [data-testid="stSidebar"] h4 {
-        color: #475569;
-        font-size: 0.95rem;
+        color: #e2e8f0 !important;
         font-weight: 600;
-        margin-top: 1rem;
-        margin-bottom: 0.75rem;
+    }
+    
+    /* Sidebar labels and small text */
+    [data-testid="stSidebar"] label {
+        color: #e2e8f0 !important;
+    }
+    
+    /* Info/success/warning boxes in sidebar */
+    [data-testid="stSidebar"] [data-testid="stAlert"] {
+        background-color: #334155 !important;
+        border-left: 4px solid #00d2ff !important;
+        color: #f1f5f9 !important;
+    }
+    
+    /* Radio buttons and checkboxes */
+    [data-testid="stSidebar"] [data-testid="stMarkdown"] {
+        color: #e2e8f0 !important;
+    }
+    
+    /* Dividers */
+    [data-testid="stSidebar"] hr {
+        border-color: #475569 !important;
+    }
+    
+    /* Metrics in sidebar */
+    [data-testid="stSidebar"] [data-testid="stMetric"] {
+        background-color: #334155 !important;
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMetricValue"] {
+        color: #00d2ff !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMetricLabel"] {
+        color: #94a3b8 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1271,19 +1315,19 @@ st.markdown('''
 
 # ============== SIDEBAR (ENHANCED) ============== 
 with st.sidebar:
-    # Make sidebar more prominent
+    # Dark theme header
     st.markdown("""
-    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                padding: 1rem; 
+    <div style='background: linear-gradient(135deg, #00d2ff 0%, #00ff9d 100%); 
+                padding: 1.5rem; 
                 border-radius: 10px; 
-                margin-bottom: 1rem;
+                margin-bottom: 1.5rem;
                 text-align: center;
-                color: white;'>
-        <h2 style='margin: 0; color: white;'>⚙️ Configuration</h2>
+                box-shadow: 0 4px 6px rgba(0,0,0,0.3);'>
+        <h2 style='margin: 0; color: #1e293b; font-weight: 800;'>⚙️ Configuration</h2>
     </div>
     """, unsafe_allow_html=True)
     
-    # API Settings - Always visible
+    # API Settings - Dark theme compatible
     st.markdown("### ⚡ API Settings")
     st.markdown("*Optional - App works without API key*")
     
